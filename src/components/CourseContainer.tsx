@@ -35,7 +35,7 @@ export const CourseContainer: React.FC = () => {
   };
 
   const createTempAttr = async (ethrDid: EthrDID) => {};
-
+  //Test for state
   const sendMessage = async () => {
     try {
       const response = await window.ethereum.request({
@@ -64,7 +64,7 @@ export const CourseContainer: React.FC = () => {
     }
     return;
   };
-
+  //Test for returning messages
   const verifyConnection = async () => {
     try {
       const response = await window.ethereum.request({
