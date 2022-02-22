@@ -1,29 +1,22 @@
 import React from 'react';
 import { Connect } from './Connect';
-import { ethers } from 'ethers';
 
 interface IConnectProps {
   connMetaMask: () => void;
-  connSporran: () => void;
+  sendMessage: () => void;
   verifyAccounts: () => void;
-  addr?: string;
-  sporranAddr?: string;
 }
 
 export const ConnectContainer: React.FC<IConnectProps> = ({
   connMetaMask,
-  connSporran,
+  sendMessage,
   verifyAccounts,
-  addr,
-  sporranAddr,
 }) => {
   return (
     <div>
       <Connect
         connMetaMask={connMetaMask}
-        connSporran={connSporran}
-        addr={addr}
-        sporranAddr={sporranAddr}
+        sendMessage={sendMessage}
         verifyAccounts={verifyAccounts}
       />
     </div>

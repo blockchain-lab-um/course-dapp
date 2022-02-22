@@ -10,6 +10,7 @@
   "dependencies": {
     "@kiltprotocol/sdk-js": "^0.25.2",
     "@polkadot/extension-dapp": "^0.42.7",
+    "@types/prop-types": "^15.7.4",
     "ethers": "^5.5.4",
     "ethr-did": "^2.2.0",
     "ethr-did-resolver": "^5.0.4",
