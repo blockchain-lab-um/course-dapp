@@ -1,9 +1,15 @@
 import React from 'react';
+import { Form } from './Form/Form';
 
-export const Course: React.FC = () => {
+interface IConnectProps {
+  completeCourse: () => void;
+}
+
+export const Course: React.FC<IConnectProps> = ({ completeCourse }) => {
   return (
     <div>
       <h1>Welcome To course</h1>
+      <Form completeCourse={completeCourse} />
     </div>
   );
 };

@@ -2,20 +2,20 @@ import React from 'react';
 import { Connect } from './Connect';
 
 interface IConnectProps {
-  connMetaMask: () => void;
+  installSnap: () => void;
   sendMessage: () => void;
   verifyAccounts: () => void;
 }
 
 export const ConnectContainer: React.FC<IConnectProps> = ({
-  connMetaMask,
+  installSnap,
   sendMessage,
   verifyAccounts,
 }) => {
   return (
     <div>
       <Connect
-        connMetaMask={connMetaMask}
+        installSnap={installSnap}
         sendMessage={sendMessage}
         verifyAccounts={verifyAccounts}
       />

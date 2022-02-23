@@ -1,19 +1,19 @@
 import React from 'react';
 
 interface IConnectProps {
-  connMetaMask: () => void;
+  installSnap: () => void;
   sendMessage: () => void;
   verifyAccounts: () => void;
 }
 
 export const Connect: React.FC<IConnectProps> = ({
-  connMetaMask,
+  installSnap,
   sendMessage,
   verifyAccounts,
 }) => {
   return (
     <div>
-      <button onClick={connMetaMask}>Connect MetaMask</button>
+      <button onClick={installSnap}>Install Snap</button>
       <button onClick={sendMessage}>Send Message</button>
       <button onClick={verifyAccounts}>Verify Accounts</button>
     </div>
