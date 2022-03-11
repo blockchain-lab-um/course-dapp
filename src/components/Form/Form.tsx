@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 interface IConnectProps {
-  completeCourse: () => void;
+  completeCourse: (name: string) => void;
 }
 
 export const Form: React.FC<IConnectProps> = ({ completeCourse }) => {
@@ -18,7 +18,7 @@ export const Form: React.FC<IConnectProps> = ({ completeCourse }) => {
     if (name == '' || radioState === false) {
       console.log('Fill form first');
     } else {
-      completeCourse();
+      completeCourse(name);
     }
     console.log('Name', name, radioState);
   };

@@ -12,6 +12,7 @@
     "@polkadot/extension-dapp": "^0.42.7",
     "@types/lodash": "^4.14.178",
     "@types/prop-types": "^15.7.4",
+    "axios": "^0.26.1",
     "ethers": "^5.5.4",
     "ethr-did": "^2.2.0",
     "ethr-did-resolver": "^5.0.4",

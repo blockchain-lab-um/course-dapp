@@ -6,6 +6,7 @@ import { Resolver, DIDDocument } from 'did-resolver';
 import { getResolver } from 'ethr-did-resolver';
 import { ConnectMM } from './ConnectMetaMask/ConnectMM';
 import { GetVC } from './Form/GetVC';
+const axios = require('axios');
 import * as _ from 'lodash';
 
 const rpcUrl = 'https://rinkeby.infura.io/v3/6e751a2e5ff741e5a01eab15e4e4a88b';
@@ -15,6 +16,7 @@ const snapId = 'local:http://localhost:8080/';
 export const CourseContainer: React.FC = () => {
   const [mmAddress, setMmAddress] = useState<string | null>(null);
   const [snapInstalled, setSnapInstalled] = useState<Boolean>(false);
+  const [snapInitialized, setSnapInitialized] = useState<Boolean>(false);
   const [courseCompleted, setCourseCompleted] = useState<Boolean>(false);
 
   const connectMetamask = async () => {
@@ -30,7 +32,43 @@ export const CourseContainer: React.FC = () => {
     return;
   };
 
-  const completeCourse = () => {
+  const completeCourse = async (name: string) => {
+    console.log(name, 'Completed the course!', mmAddress);
+    //Get VC
+    let axiosConfig = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    };
+    let body = { name: name, id: 'did:ethr:rinkeby:' + mmAddress };
+    let VC = await axios
+      .post('http://localhost:3333/api/vc/issue-vc', body, axiosConfig)
+      .then(function (response: any) {
+        return response.data;
+      })
+      .catch(function (error: any) {
+        console.log(error);
+      });
+    console.log(VC);
+
+    //Add VC to MM
+    try {
+      const response = await window.ethereum.request({
+        method: 'wallet_invokeSnap',
+        params: [
+          snapId,
+          {
+            method: 'save_vc',
+            params: [VC],
+          },
+        ],
+      });
+      console.log(response);
+    } catch (err) {
+      console.error(err);
+      alert('Problem happened: ' + (err as Error).message || err);
+    }
     setCourseCompleted(true);
   };
 
@@ -53,18 +91,17 @@ export const CourseContainer: React.FC = () => {
         if (!_.isEmpty(snap)) {
           setSnapInstalled(true);
           //TODO show buttons only if snap is initialized
-          console.log(
-            'Is initialized?',
-            await window.ethereum.request({
-              method: 'wallet_invokeSnap',
-              params: [
-                snapId,
-                {
-                  method: 'isInitialized',
-                },
-              ],
-            })
-          );
+          const initialized = await window.ethereum.request({
+            method: 'wallet_invokeSnap',
+            params: [
+              snapId,
+              {
+                method: 'isInitialized',
+              },
+            ],
+          });
+          console.log('Is initialized?', initialized);
+          setSnapInitialized(initialized);
         }
       }
     } else {
@@ -117,6 +154,7 @@ export const CourseContainer: React.FC = () => {
         ],
       });
       console.log(response);
+      setSnapInitialized(response);
     } catch (err) {
       console.error(err);
       alert('Problem happened: ' + (err as Error).message || err);
@@ -131,7 +169,7 @@ export const CourseContainer: React.FC = () => {
         params: [
           snapId,
           {
-            method: 'get_vp',
+            method: 'test_vp',
           },
         ],
       });
@@ -148,7 +186,7 @@ export const CourseContainer: React.FC = () => {
     if (mmAddress !== null) {
       return (
         <div>
-          {!snapInstalled && (
+          {(!snapInstalled || snapInstalled) && (
             <div>
               <ConnectContainer
                 installSnap={installSnap}
@@ -159,7 +197,7 @@ export const CourseContainer: React.FC = () => {
               TODO: Check for existing VC, Check if correct Snap is installed
             </div>
           )}
-          {snapInstalled && <Course completeCourse={completeCourse} />}
+          {snapInitialized && <Course completeCourse={completeCourse} />}
         </div>
       );
     } else {
