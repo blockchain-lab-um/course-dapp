@@ -8,6 +8,7 @@ import { ConnectMM } from './ConnectMetaMask/ConnectMM';
 import { GetVC } from './Form/GetVC';
 const axios = require('axios');
 import * as _ from 'lodash';
+import { Web3Provider } from '@ethersproject/providers';
 
 const rpcUrl = 'https://rinkeby.infura.io/v3/6e751a2e5ff741e5a01eab15e4e4a88b';
 const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
@@ -30,6 +31,124 @@ export const CourseContainer: React.FC = () => {
       console.log('Install Metamask');
     }
     return;
+  };
+
+  const getVCs = async () => {
+    console.log('Getting vcs..');
+    try {
+      const response = await window.ethereum.request({
+        method: 'wallet_invokeSnap',
+        params: [
+          snapId,
+          {
+            method: 'get_vcs',
+          },
+        ],
+      });
+      console.log(response);
+    } catch (err) {
+      console.error(err);
+      alert('Problem happened: ' + (err as Error).message || err);
+    }
+    return;
+  };
+
+  const getVp = async () => {
+    console.log('Getting vp for id: 0...');
+    try {
+      const response = await window.ethereum.request({
+        method: 'wallet_invokeSnap',
+        params: [
+          snapId,
+          {
+            method: 'get_vp',
+            params: [0],
+          },
+        ],
+      });
+      console.log(response);
+    } catch (err) {
+      console.error(err);
+      alert('Problem happened: ' + (err as Error).message || err);
+    }
+  };
+
+  const resolveDidEthr = async () => {
+    const provider = new Web3Provider((window as any).ethereum);
+    const chainNameOrId = (await provider.getNetwork()).chainId;
+    const ethrDid = new EthrDID({
+      identifier: mmAddress as string,
+      provider,
+      chainNameOrId,
+    });
+    const didDocument = (await didResolver.resolve(ethrDid.did)).didDocument;
+    console.log('DID:ETHR DID DOCUMENT:', didDocument);
+    let gasPrice = (await provider.getGasPrice()).toNumber() * 2;
+    return { ethrDid, didDocument, gasPrice };
+  };
+
+  const checkForKey = async (
+    didDocument: DIDDocument,
+    vcKey: string
+  ): Promise<boolean> => {
+    const veriKeys = didDocument?.verificationMethod;
+    let retVal = false;
+    if (veriKeys != null) {
+      console.log('veri keys', veriKeys);
+      veriKeys.map((key) => {
+        if (key.publicKeyHex?.toString() === vcKey.substring(2)) {
+          retVal = true;
+        }
+      });
+    }
+    return retVal;
+  };
+
+  const addEdKey = async () => {
+    console.log('Add key');
+    // Check if key already exists...
+
+    const { ethrDid, didDocument, gasPrice } = await resolveDidEthr();
+
+    //Request ED key from MM Snap
+    let hexKey = '';
+    try {
+      hexKey = await window.ethereum.request({
+        method: 'wallet_invokeSnap',
+        params: [
+          snapId,
+          {
+            method: 'getVCAddress',
+          },
+        ],
+      });
+      console.log('Hex key:', hexKey);
+
+      //Check if attribute already exists
+      if (didDocument) {
+        const res = await checkForKey(didDocument, hexKey);
+        if (!res) {
+          //Add key as auth key using addAttribute from ethr-did
+
+          let gasLimit = 100000;
+
+          const txOptions = { gasPrice, gasLimit };
+          await ethrDid.setAttribute(
+            'did/pub/Ed25519/veriKey/hex',
+            hexKey,
+            86400,
+            undefined,
+            txOptions
+          );
+          //await ethrDid.setAttribute('did/pub/Ed25519/veriKey/base58', edKey);
+        } else {
+          console.log('Attribute already exists');
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Problem happened: ' + (err as Error).message || err);
+    }
   };
 
   const completeCourse = async (name: string) => {
@@ -192,6 +311,9 @@ export const CourseContainer: React.FC = () => {
                 installSnap={installSnap}
                 sendMessage={sendMessage}
                 verifyAccounts={verifyConnection}
+                addKey={addEdKey}
+                getVcs={getVCs}
+                getVp={getVp}
               />
               <button onClick={initializeSnap}>init</button>
               TODO: Check for existing VC, Check if correct Snap is installed
