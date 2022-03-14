@@ -2,7 +2,7 @@ import React from 'react';
 import { Form } from './Form/Form';
 
 interface IConnectProps {
-  completeCourse: () => void;
+  completeCourse: (name: string) => void;
 }
 
 export const Course: React.FC<IConnectProps> = ({ completeCourse }) => {
