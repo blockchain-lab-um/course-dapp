@@ -7,8 +7,8 @@ interface IConnectProps {
 
 export const Course: React.FC<IConnectProps> = ({ completeCourse }) => {
   return (
-    <div>
-      <h1>Welcome To course</h1>
+    <div className="grid justify-items-center">
+      <h1 className="text-2xl font-bold mb-5">Ethereum Developer Course</h1>
       <Form completeCourse={completeCourse} />
     </div>
   );

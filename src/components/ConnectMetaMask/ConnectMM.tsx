@@ -7,7 +7,9 @@ interface IConnectProps {
 export const ConnectMM: React.FC<IConnectProps> = ({ connMetaMask }) => {
   return (
     <div>
-      <button onClick={connMetaMask}>Connect MetaMask</button>
+      <button className="custom-button" onClick={connMetaMask}>
+        Connect MetaMask
+      </button>
     </div>
   );
 };

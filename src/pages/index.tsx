@@ -19,7 +19,7 @@ declare global {
 }
 const Home: NextPage = () => {
   return (
-    <div className={styles.container}>
+    <div className="bg-pink min-h-screen flex justify-center p-10">
       <Head>
         <title>Course DAPP</title>
         <script>window.kilt = &#123;&#125;;</script>

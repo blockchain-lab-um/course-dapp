@@ -24,33 +24,44 @@ export const Form: React.FC<IConnectProps> = ({ completeCourse }) => {
   };
 
   return (
-    <div>
+    <div className="div-card">
       <form onSubmit={handleSubmit}>
-        <label>
-          Name:
-          <input type="text" name="name" onChange={handleChange} />
-        </label>
-        <label>
-          Do you know how to program?
-          <div>
+        <div className="p-2">
+          <label>
+            Name:
             <input
-              type="radio"
-              value="true"
-              name="canProgram"
-              onChange={handleRadioBtnChange}
-            />{' '}
-            Yes
-            <input
-              type="radio"
-              value="false"
-              name="canProgram"
-              onChange={handleRadioBtnChange}
-              defaultChecked
-            />{' '}
-            No
-          </div>
-          <input type="submit" value="Submit" />
-        </label>
+              type="text"
+              name="name"
+              onChange={handleChange}
+              className="ml-2 pl-2"
+            />
+          </label>
+        </div>
+        <div className="p-2">
+          <label>
+            Are you familiar with Solidity?
+            <div>
+              <input
+                type="radio"
+                value="true"
+                name="canProgram"
+                onChange={handleRadioBtnChange}
+                className="mr-2"
+              />{' '}
+              Yes
+              <input
+                type="radio"
+                value="false"
+                name="canProgram"
+                onChange={handleRadioBtnChange}
+                className="ml-4"
+                defaultChecked
+              />{' '}
+              No
+            </div>
+          </label>
+        </div>
+        <input className="custom-button-sm" type="submit" value="Submit" />
       </form>
     </div>
   );

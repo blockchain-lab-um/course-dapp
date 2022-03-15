@@ -19,10 +19,7 @@ export const Connect: React.FC<IConnectProps> = ({
 }) => {
   return (
     <div>
-      <button onClick={installSnap}>Install Snap</button>
-      <button onClick={sendMessage}>Send Message</button>
       <button onClick={verifyAccounts}>Verify Accounts</button>
-      <button onClick={addKey}>Add Key</button>
       <button onClick={getVcs}>Get VCs</button>
       <button onClick={getVp}>Get VP</button>
     </div>
