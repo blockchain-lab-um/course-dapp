@@ -24,6 +24,7 @@
     "use-state-with-callback": "^2.0.3"
   },
   "devDependencies": {
+    "@tailwindcss/custom-forms": "^0.2.1",
     "@types/node": "17.0.13",
     "@types/react": "17.0.38",
     "autoprefixer": "^10.4.2",

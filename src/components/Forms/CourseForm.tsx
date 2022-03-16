@@ -4,7 +4,7 @@ interface IConnectProps {
   completeCourse: (name: string) => void;
 }
 
-export const Form: React.FC<IConnectProps> = ({ completeCourse }) => {
+export const CourseForm: React.FC<IConnectProps> = ({ completeCourse }) => {
   const [name, setName] = useState('');
   const [radioState, setRadioState] = useState(false);
   const handleChange = (e: React.FormEvent<HTMLInputElement>) => {
@@ -24,29 +24,30 @@ export const Form: React.FC<IConnectProps> = ({ completeCourse }) => {
   };
 
   return (
-    <div className="div-card">
+    <div className="flex justify-center w-2/5 bg-blue text-lightgreen p-5 pt-10">
       <form onSubmit={handleSubmit}>
-        <div className="p-2">
+        <div className="text-4xl font-semibold">
           <label>
-            Name:
+            NAME
             <input
               type="text"
               name="name"
               onChange={handleChange}
-              className="ml-2 pl-2"
+              className="ml-2 pl-2 text-blue outline-none bg-white"
             />
           </label>
         </div>
-        <div className="p-2">
+        <br />
+        <div className="p-2 text-2xl">
           <label>
             Are you familiar with Solidity?
-            <div>
+            <div className="pt-1">
               <input
                 type="radio"
                 value="true"
                 name="canProgram"
                 onChange={handleRadioBtnChange}
-                className="mr-2"
+                className="form-radio mr-2 text-green bg-white"
               />{' '}
               Yes
               <input
@@ -54,14 +55,23 @@ export const Form: React.FC<IConnectProps> = ({ completeCourse }) => {
                 value="false"
                 name="canProgram"
                 onChange={handleRadioBtnChange}
-                className="ml-4"
+                className="form-radio ml-4 text-green bg-white"
                 defaultChecked
               />{' '}
               No
             </div>
           </label>
         </div>
-        <input className="custom-button-sm" type="submit" value="Submit" />
+        <br />
+        <br />
+        <br />
+        <div className="w-full flex justify-center">
+          <input
+            className="absolute mt-[-20px] px-5 py-2 text-white text-3xl bg-blue hover:text-lightgreen outline outline-green outline-[0.195em]"
+            type="submit"
+            value="submit"
+          />
+        </div>
       </form>
     </div>
   );

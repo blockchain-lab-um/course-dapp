@@ -5,12 +5,16 @@ import { EthrDID } from 'ethr-did';
 import { Resolver, DIDDocument } from 'did-resolver';
 import { getResolver } from 'ethr-did-resolver';
 import { ConnectMM } from './ConnectMetaMask/ConnectMM';
-import { GetVC } from './Form/GetVC';
+import { CourseCompleted } from './Views/CourseCompleted';
 const axios = require('axios');
 import * as _ from 'lodash';
 import { Web3Provider } from '@ethersproject/providers';
 import Spinner from './Utils/Spinner';
 import useStateWithCallback from 'use-state-with-callback';
+import { Header } from './Header/Header';
+import { Error } from './Views/Error';
+import { AddAttributeForm } from './Forms/AddAttributeForm';
+import { CourseForm } from './Forms/CourseForm';
 
 const rpcUrl = 'https://rinkeby.infura.io/v3/6e751a2e5ff741e5a01eab15e4e4a88b';
 const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
@@ -45,7 +49,9 @@ export const CourseContainer: React.FC = () => {
         setSnapInstalled(true);
         console.log('Checking if snap initialized...');
         //Check if Snap is initialized, if its not, it will initialize automatically
+        console.log('Here');
         const initialized = await isSnapInitialized();
+
         if (mmAddr != null && initialized) {
           //Check for existing EDKey attribute and VCs if storage is already initialized
           await checkForEdKey(mmAddr);
@@ -56,11 +62,10 @@ export const CourseContainer: React.FC = () => {
         const res = await installSnap();
         if (res) {
           await isSnapInitialized();
-          // Checking for ED key and existing VCs probably not needed, since storage needs to be reset
-          // if (mmAddr != null) {
-          //   await checkForEdKey(mmAddr);
-          //   await checkForVc(mmAddr);
-          // }
+          if (mmAddr != null) {
+            await checkForEdKey(mmAddr);
+            await checkForVc(mmAddr);
+          }
         } else {
           console.log('Something went wrong...');
         }
@@ -455,59 +460,102 @@ export const CourseContainer: React.FC = () => {
 
     console.log(result[snapId]);
   };
+
   if (!window.ethereum) {
+    return <Error msg={'MetaMask not installed!'} />;
+  } else {
     return (
       <div>
-        <h1>MetaMask not Installed!</h1>
+        <Header
+          address={mmAddress}
+          connected={mmAddress != null}
+          connMetaMask={connectMetamask}
+        />
+        <div className="flex justify-center pt-20">
+          {courseCompleted && <CourseCompleted />}
+          {mmAddress != null && !courseCompleted && (
+            <>
+              <Spinner loading={spinner} />
+              {snapInitialized && !edKey && !spinner && (
+                <AddAttributeForm addAttribute={addEdKey} />
+              )}
+              {snapInitialized && edKey && !hasVC && (
+                <CourseForm completeCourse={completeCourse} />
+              )}
+              {snapInitialized && edKey && hasVC && (
+                <Error msg={'You already have a valid VC!'} />
+              )}
+            </>
+          )}
+        </div>
       </div>
     );
   }
-  if (courseCompleted) {
-    return <GetVC />;
-  } else {
-    if (mmAddress !== null) {
-      return (
-        <div>
-          <Spinner loading={spinner} />
-          {false && (
-            <div>
-              <ConnectContainer
-                installSnap={installSnap}
-                sendMessage={sendMessage}
-                verifyAccounts={verifyConnection}
-                addKey={addEdKey}
-                getVcs={getVCs}
-                getVp={getVp}
-              />
-            </div>
-          )}
-          {snapInitialized && !edKey && !spinner && (
-            <div className="div-card">
-              <div>
-                <h3 className="text-xl mb-10">
-                  To ensure everything is working smoothly, add custom delegate
-                  to your MetaMask account!
-                </h3>
-              </div>
-              <div>
-                <button className="custom-button" onClick={addEdKey}>
-                  Add Delegate Attribute
-                </button>
-              </div>
-            </div>
-          )}
-          {snapInitialized && edKey && !hasVC && (
-            <Course completeCourse={completeCourse} />
-          )}
-          {snapInitialized && edKey && hasVC && (
-            <div className="grid justify-items-center">
-              <h1 className="text-2xl">You already have a valid VC!</h1>
-            </div>
-          )}
-        </div>
-      );
-    } else {
-      return <ConnectMM connMetaMask={connectMetamask} />;
-    }
-  }
+
+  // if (!window.ethereum) {
+  //   return <Error msg={'MetaMask not installed!'} />;
+  // }
+  // if (courseCompleted) {
+  //   return (
+  //     <div>
+  //       <Header
+  //         address={mmAddress}
+  //         connected={mmAddress != null}
+  //         connMetaMask={connectMetamask}
+  //       />
+  //       <VCExists />
+  //     </div>
+  //   );
+  // } else {
+  //   if (mmAddress !== null) {
+  //     return (
+  //       <div>
+  //         <Header
+  //           address={mmAddress}
+  //           connected={mmAddress != null}
+  //           connMetaMask={connectMetamask}
+  //         />
+  //         <Spinner loading={spinner} />
+  //         {false && (
+  //           <div>
+  //             <ConnectContainer
+  //               installSnap={installSnap}
+  //               sendMessage={sendMessage}
+  //               verifyAccounts={verifyConnection}
+  //               addKey={addEdKey}
+  //               getVcs={getVCs}
+  //               getVp={getVp}
+  //             />
+  //           </div>
+  //         )}
+  //         {snapInitialized && !edKey && !spinner && (
+  //           <div>
+  //             <AddAttributeForm addAttribute={addEdKey} />
+  //             {true && <div>Hello world</div>}
+  //           </div>
+  //         )}
+  //         {snapInitialized && edKey && !hasVC && (
+  //           <div>
+  //             <Course completeCourse={completeCourse} />
+  //           </div>
+  //         )}
+  //         {snapInitialized && edKey && hasVC && (
+  //           <div className="grid justify-items-center">
+  //             <h1 className="text-2xl">You already have a valid VC!</h1>
+  //           </div>
+  //         )}
+  //       </div>
+  //     );
+  //   } else {
+  //     return (
+  //       <div>
+  //         <Header
+  //           address={mmAddress}
+  //           connected={mmAddress != null}
+  //           connMetaMask={connectMetamask}
+  //         />
+  //       </div>
+  //     );
+  //   }
+  // }
 };

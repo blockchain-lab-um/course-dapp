@@ -5,19 +5,22 @@ module.exports = {
   ],
   theme: {
     colors: {
-      darkturqoise: '#006d77',
+      darkturqoise: '#379683',
       turqoise: '#83c5be',
       lightblue: '#60efff',
-      lightgreen: '#00ff87',
+      lightgreen: '#8EE4AF',
       gray: '#edf6f9',
       pink: '#ffddd2',
       brown: '#e29578',
+      green: '#5CDB95',
+      blue: '#05386B',
+      white: '#EDF5E1',
     },
-    fontFamily: {
-      sans: 'roboto',
-      mono: 'ui-monospace',
+    extend: {
+      fontFamily: {
+        mono: ['JetBrains Mono', 'sans-serif'],
+      },
     },
-    extend: {},
   },
-  plugins: [],
+  plugins: [require('@tailwindcss/custom-forms')],
 };

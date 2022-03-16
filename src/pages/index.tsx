@@ -19,10 +19,15 @@ declare global {
 }
 const Home: NextPage = () => {
   return (
-    <div className="bg-pink min-h-screen flex justify-center p-10">
+    <div className="bg-green min-h-screen font-mono">
       <Head>
-        <title>Course DAPP</title>
-        <script>window.kilt = &#123;&#125;;</script>
+        <title>Solidity Course</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+          href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap"
+          rel="stylesheet"
+        ></link>
       </Head>
       <Wrapper />
     </div>
