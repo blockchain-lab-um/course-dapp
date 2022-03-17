@@ -1,20 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ConnectContainer } from './ConnectContainer';
-import { Course } from './Course';
 import { EthrDID } from 'ethr-did';
 import { Resolver, DIDDocument } from 'did-resolver';
 import { getResolver } from 'ethr-did-resolver';
-import { ConnectMM } from './ConnectMetaMask/ConnectMM';
-import { CourseCompleted } from './Views/CourseCompleted';
 const axios = require('axios');
 import * as _ from 'lodash';
 import { Web3Provider } from '@ethersproject/providers';
-import Spinner from './Utils/Spinner';
-import useStateWithCallback from 'use-state-with-callback';
-import { Header } from './Header/Header';
-import { Error } from './Views/Error';
-import { AddAttributeForm } from './Forms/AddAttributeForm';
-import { CourseForm } from './Forms/CourseForm';
+import { HomePage } from './HomePage';
 
 const rpcUrl = 'https://rinkeby.infura.io/v3/6e751a2e5ff741e5a01eab15e4e4a88b';
 const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
@@ -22,14 +13,14 @@ const snapId = 'local:http://localhost:8080/';
 const vcIssuerId =
   'did:ethr:rinkeby:0x0241abd662da06d0af2f0152a80bc037f65a7f901160cfe1eb35ef3f0c532a2a4d';
 
-export const CourseContainer: React.FC = () => {
+export const HomePageContainer: React.FC = () => {
   const [mmAddress, setMmAddress] = useState<string | null>(null);
-  const [snapInstalled, setSnapInstalled] = useState<Boolean>(false);
-  const [snapInitialized, setSnapInitialized] = useState<Boolean>(false);
-  const [courseCompleted, setCourseCompleted] = useState<Boolean>(false);
+  const [snapInitialized, setSnapInitialized] = useState<boolean>(false);
+  const [courseCompleted, setCourseCompleted] = useState<boolean>(false);
   const [spinner, setSpinner] = useState<boolean>(false);
   const [edKey, setEdKey] = useState<boolean>(false);
   const [hasVC, setHasVC] = useState<boolean>(false);
+  const [spinnerMsg, setSpinnerMsg] = useState<string>('loading...');
 
   const connectMetamask = async () => {
     let mmAddr = null;
@@ -46,7 +37,6 @@ export const CourseContainer: React.FC = () => {
       //Check if Snap is Installed
       if (await isSnapInstalled()) {
         console.log('Snap installed.');
-        setSnapInstalled(true);
         console.log('Checking if snap initialized...');
         //Check if Snap is initialized, if its not, it will initialize automatically
         console.log('Here');
@@ -83,44 +73,9 @@ export const CourseContainer: React.FC = () => {
     else return false;
   };
 
-  const getVCs = async () => {
-    console.log('Getting vcs..');
-    try {
-      const response = await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'get_vcs',
-          },
-        ],
-      });
-      console.log(response);
-      try {
-        if (response.length > 0) {
-          response.map((vc: any) => {
-            if (
-              vc.credentialSubject.id.split(':')[3].toString().toUpperCase() ===
-                mmAddress?.toUpperCase() &&
-              vc.issuer.id.toString().toUpperCase() === vcIssuerId.toUpperCase()
-            ) {
-              console.log('Has valid VC!');
-              setHasVC(true);
-            }
-          });
-        }
-      } catch (e) {
-        console.log('No valid VCs found!', e);
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Problem happened: ' + (err as Error).message || err);
-    }
-    return;
-  };
-
   const checkForVc = async (mmAddr: string) => {
     setSpinner(true);
+    setSpinnerMsg('checking for existing vc...');
     console.log('Checking if user already has a valid VC..');
     try {
       const response = await window.ethereum.request({
@@ -155,33 +110,16 @@ export const CourseContainer: React.FC = () => {
       } catch (e) {
         console.log('No valid VCs found!', e);
         setSpinner(false);
+        setSpinnerMsg('loading...');
       }
     } catch (err) {
       console.error(err);
       alert('Problem happened: ' + (err as Error).message || err);
       setSpinner(false);
+      setSpinnerMsg('loading...');
     }
     setSpinner(false);
-  };
-
-  const getVp = async () => {
-    console.log('Getting vp for id: 0...');
-    try {
-      const response = await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'get_vp',
-            params: [0],
-          },
-        ],
-      });
-      console.log(response);
-    } catch (err) {
-      console.error(err);
-      alert('Problem happened: ' + (err as Error).message || err);
-    }
+    setSpinnerMsg('loading...');
   };
 
   const resolveDidEthr = async (mmAddr?: string) => {
@@ -224,6 +162,7 @@ export const CourseContainer: React.FC = () => {
   const checkForEdKey = async (mmAddr: string) => {
     console.log('Checking if key already exists...');
     setSpinner(true);
+    setSpinnerMsg('checking for existing delegate...');
     const { ethrDid, didDocument, gasPrice } = await resolveDidEthr(mmAddr);
 
     let hexKey = '';
@@ -253,13 +192,16 @@ export const CourseContainer: React.FC = () => {
       console.error(e);
       alert('Problem happened: ' + (e as Error).message || e);
       setSpinner(false);
+      setSpinnerMsg('loading...');
     }
     setSpinner(false);
+    setSpinnerMsg('loading...');
   };
 
   const addEdKey = async () => {
     console.log('Add key');
     setSpinner(true);
+    setSpinnerMsg('preparing delegate...');
     // Check if key already exists...
 
     const { ethrDid, didDocument, gasPrice } = await resolveDidEthr();
@@ -287,6 +229,7 @@ export const CourseContainer: React.FC = () => {
           let gasLimit = 100000;
 
           const txOptions = { gasPrice, gasLimit };
+          setSpinnerMsg('adding delegate...');
           const attRes = await ethrDid.setAttribute(
             'did/pub/Ed25519/veriKey/hex',
             hexKey,
@@ -309,8 +252,10 @@ export const CourseContainer: React.FC = () => {
       console.error(err);
       alert('Problem happened: ' + (err as Error).message || err);
       setSpinner(false);
+      setSpinnerMsg('loading...');
     }
     setSpinner(false);
+    setSpinnerMsg('loading...');
   };
 
   const completeCourse = async (name: string) => {
@@ -355,6 +300,7 @@ export const CourseContainer: React.FC = () => {
 
   const isSnapInitialized = async () => {
     setSpinner(true);
+    setSpinnerMsg('checking if snap is initialized...');
     console.log('Checking if snap is initialized...');
     const initialized = await window.ethereum.request({
       method: 'wallet_invokeSnap',
@@ -370,16 +316,19 @@ export const CourseContainer: React.FC = () => {
       console.log('Snap properly initialized');
       setSnapInitialized(true);
       setSpinner(false);
+      setSpinnerMsg('loading...');
       return true;
     } else {
       await initializeSnap();
     }
     setSpinner(false);
+    setSpinnerMsg('loading...');
     return false;
   };
 
   const installSnap = async () => {
     setSpinner(true);
+    setSpinnerMsg('installing snap...');
     const res = await window.ethereum.request({
       method: 'wallet_enable',
       params: [
@@ -392,49 +341,19 @@ export const CourseContainer: React.FC = () => {
       const snap = res.snaps;
       if (snap[snapId]) {
         console.log('Sucessfuly installed.');
-        setSnapInstalled(true);
         setSpinner(false);
+        setSpinnerMsg('loading...');
         return true;
       }
     }
     setSpinner(false);
+    setSpinnerMsg('loading...');
     return false;
   };
 
-  const createTempAttr = async (ethrDid: EthrDID) => {};
-  //Test for state
-  const sendMessage = async () => {
-    try {
-      const vc = {
-        '@context': ['https://www.w3.org/2018/credentials/v1'],
-        type: ['VerifiableCredential'],
-        credentialSubject: {
-          degree: {
-            type: 'BachelorDegree',
-            name: 'Baccalauréat en musiques numériques',
-          },
-        },
-      };
-      const response = await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'hello',
-            params: [vc],
-          },
-        ],
-      });
-      console.log(response);
-    } catch (err) {
-      console.error(err);
-      alert('Problem happened: ' + (err as Error).message || err);
-    }
-    return;
-  };
-  //Test for returning messages
   const initializeSnap = async () => {
     console.log('Initializing snap...');
+    setSpinnerMsg('initializing snap...');
     try {
       const response = await window.ethereum.request({
         method: 'wallet_invokeSnap',
@@ -452,110 +371,22 @@ export const CourseContainer: React.FC = () => {
       console.error(err);
       alert('Problem happened: ' + (err as Error).message || err);
     }
+    setSpinnerMsg('loading...');
     return;
   };
 
-  const verifyConnection = async () => {
-    const result = await window.ethereum.request({ method: 'wallet_getSnaps' });
-
-    console.log(result[snapId]);
-  };
-
-  if (!window.ethereum) {
-    return <Error msg={'MetaMask not installed!'} />;
-  } else {
-    return (
-      <div>
-        <Header
-          address={mmAddress}
-          connected={mmAddress != null}
-          connMetaMask={connectMetamask}
-        />
-        <div className="flex justify-center pt-20">
-          {courseCompleted && <CourseCompleted />}
-          {mmAddress != null && !courseCompleted && (
-            <>
-              <Spinner loading={spinner} />
-              {snapInitialized && !edKey && !spinner && (
-                <AddAttributeForm addAttribute={addEdKey} />
-              )}
-              {snapInitialized && edKey && !hasVC && (
-                <CourseForm completeCourse={completeCourse} />
-              )}
-              {snapInitialized && edKey && hasVC && (
-                <Error msg={'You already have a valid VC!'} />
-              )}
-            </>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // if (!window.ethereum) {
-  //   return <Error msg={'MetaMask not installed!'} />;
-  // }
-  // if (courseCompleted) {
-  //   return (
-  //     <div>
-  //       <Header
-  //         address={mmAddress}
-  //         connected={mmAddress != null}
-  //         connMetaMask={connectMetamask}
-  //       />
-  //       <VCExists />
-  //     </div>
-  //   );
-  // } else {
-  //   if (mmAddress !== null) {
-  //     return (
-  //       <div>
-  //         <Header
-  //           address={mmAddress}
-  //           connected={mmAddress != null}
-  //           connMetaMask={connectMetamask}
-  //         />
-  //         <Spinner loading={spinner} />
-  //         {false && (
-  //           <div>
-  //             <ConnectContainer
-  //               installSnap={installSnap}
-  //               sendMessage={sendMessage}
-  //               verifyAccounts={verifyConnection}
-  //               addKey={addEdKey}
-  //               getVcs={getVCs}
-  //               getVp={getVp}
-  //             />
-  //           </div>
-  //         )}
-  //         {snapInitialized && !edKey && !spinner && (
-  //           <div>
-  //             <AddAttributeForm addAttribute={addEdKey} />
-  //             {true && <div>Hello world</div>}
-  //           </div>
-  //         )}
-  //         {snapInitialized && edKey && !hasVC && (
-  //           <div>
-  //             <Course completeCourse={completeCourse} />
-  //           </div>
-  //         )}
-  //         {snapInitialized && edKey && hasVC && (
-  //           <div className="grid justify-items-center">
-  //             <h1 className="text-2xl">You already have a valid VC!</h1>
-  //           </div>
-  //         )}
-  //       </div>
-  //     );
-  //   } else {
-  //     return (
-  //       <div>
-  //         <Header
-  //           address={mmAddress}
-  //           connected={mmAddress != null}
-  //           connMetaMask={connectMetamask}
-  //         />
-  //       </div>
-  //     );
-  //   }
-  // }
+  return (
+    <HomePage
+      mmAddress={mmAddress}
+      connectMetamask={connectMetamask}
+      spinner={spinner}
+      courseCompleted={courseCompleted}
+      addEdKey={addEdKey}
+      snapInitialized={snapInitialized}
+      edKey={edKey}
+      hasVC={hasVC}
+      completeCourse={completeCourse}
+      spinnerMsg={spinnerMsg}
+    />
+  );
 };

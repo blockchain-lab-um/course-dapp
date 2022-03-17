@@ -24,7 +24,7 @@ export const CourseForm: React.FC<IConnectProps> = ({ completeCourse }) => {
   };
 
   return (
-    <div className="flex justify-center w-2/5 bg-blue text-lightgreen p-5 pt-10">
+    <div className="flex justify-center w-2/5 bg-blue text-white p-5 pt-10">
       <form onSubmit={handleSubmit}>
         <div className="text-4xl font-semibold">
           <label>
@@ -33,7 +33,7 @@ export const CourseForm: React.FC<IConnectProps> = ({ completeCourse }) => {
               type="text"
               name="name"
               onChange={handleChange}
-              className="ml-2 pl-2 text-blue outline-none bg-white"
+              className="ml-2 pl-2 text-blue outline-none bg-white w-2/3"
             />
           </label>
         </div>
@@ -67,7 +67,7 @@ export const CourseForm: React.FC<IConnectProps> = ({ completeCourse }) => {
         <br />
         <div className="w-full flex justify-center">
           <input
-            className="absolute mt-[-20px] px-5 py-2 text-white text-3xl bg-blue hover:text-lightgreen outline outline-green outline-[0.195em]"
+            className="absolute mt-[-20px] py-2 px-5 m-2 text-blue text-3xl bg-white hover:outline-green hover:bg-blue hover:text-white outline outline-blue outline-8"
             type="submit"
             value="submit"
           />

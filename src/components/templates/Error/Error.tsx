@@ -6,7 +6,7 @@ interface IConnectProps {
 
 export const Error: React.FC<IConnectProps> = ({ msg }) => {
   return (
-    <div className="grid justify-items-center text-blue text-3xl font-semibold">
+    <div className="grid justify-items-center text-white bg-blue p-10 text-3xl font-semibold">
       <h1>{msg}</h1>
     </div>
   );

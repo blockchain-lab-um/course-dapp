@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 .custom-button {
-  @apply py-5 px-2 m-2 text-white text-3xl bg-blue hover:text-lightgreen outline outline-green outline-8;
+  @apply py-5 px-5 m-2 text-white text-3xl bg-blue hover:text-lightgreen outline outline-green outline-8;
 }
 
 .custom-button-sm {

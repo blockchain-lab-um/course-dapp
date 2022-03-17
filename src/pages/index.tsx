@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 
 const Wrapper = dynamic(
   () => {
-    return import('./Wrapper');
+    return import('../components/layouts/Wrapper');
   },
   { ssr: false }
 );
@@ -19,11 +19,11 @@ declare global {
 }
 const Home: NextPage = () => {
   return (
-    <div className="bg-green min-h-screen font-mono">
+    <div>
       <Head>
         <title>Solidity Course</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin />
         <link
           href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap"
           rel="stylesheet"
