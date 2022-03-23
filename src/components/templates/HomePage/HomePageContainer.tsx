@@ -40,9 +40,9 @@ export const HomePageContainer: React.FC = () => {
         console.log('Checking if snap initialized...');
         //Check if Snap is initialized, if its not, it will initialize automatically
         console.log('Here');
-        const initialized = await isSnapInitialized();
+        //const initialized = await isSnapInitialized();
 
-        if (mmAddr != null && initialized) {
+        if (mmAddr != null) {
           //Check for existing EDKey attribute and VCs if storage is already initialized
           await checkForEdKey(mmAddr);
           await checkForVc(mmAddr);
@@ -51,7 +51,7 @@ export const HomePageContainer: React.FC = () => {
         //Ask user to install Snap and initialize snap storage
         const res = await installSnap();
         if (res) {
-          await isSnapInitialized();
+          //await isSnapInitialized();
           if (mmAddr != null) {
             await checkForEdKey(mmAddr);
             await checkForVc(mmAddr);
@@ -382,7 +382,7 @@ export const HomePageContainer: React.FC = () => {
       spinner={spinner}
       courseCompleted={courseCompleted}
       addEdKey={addEdKey}
-      snapInitialized={snapInitialized}
+      snapInitialized={true}
       edKey={edKey}
       hasVC={hasVC}
       completeCourse={completeCourse}
