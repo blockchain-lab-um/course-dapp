@@ -6,10 +6,11 @@ const axios = require('axios');
 import * as _ from 'lodash';
 import { Web3Provider } from '@ethersproject/providers';
 import { HomePage } from './HomePage';
+import { Response } from '../../../utils/interfaces';
 
 const rpcUrl = 'https://rinkeby.infura.io/v3/6e751a2e5ff741e5a01eab15e4e4a88b';
 const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
-const snapId = 'local:http://localhost:8080/';
+const snapId = 'local:http://localhost:8081/';
 const vcIssuerId =
   'did:ethr:rinkeby:0x0241abd662da06d0af2f0152a80bc037f65a7f901160cfe1eb35ef3f0c532a2a4d';
 
@@ -68,7 +69,7 @@ export const HomePageContainer: React.FC = () => {
 
   const isSnapInstalled = async () => {
     const result = await window.ethereum.request({ method: 'wallet_getSnaps' });
-
+    console.log('Snaps installed...', result);
     if (result[snapId]) return true;
     else return false;
   };
@@ -78,7 +79,7 @@ export const HomePageContainer: React.FC = () => {
     setSpinnerMsg('checking for existing vc...');
     console.log('Checking if user already has a valid VC..');
     try {
-      const response = await window.ethereum.request({
+      const response = (await window.ethereum.request({
         method: 'wallet_invokeSnap',
         params: [
           snapId,
@@ -86,11 +87,11 @@ export const HomePageContainer: React.FC = () => {
             method: 'get_vcs',
           },
         ],
-      });
+      })) as Response;
       console.log(response);
       try {
-        if (response.length > 0) {
-          response.map((vc: any) => {
+        if (response.data.length > 0) {
+          response.data.map((vc: any) => {
             console.log(
               vc.credentialSubject.id.split(':')[3].toString().toUpperCase(),
               mmAddr,
@@ -165,9 +166,9 @@ export const HomePageContainer: React.FC = () => {
     setSpinnerMsg('checking for existing delegate...');
     const { ethrDid, didDocument, gasPrice } = await resolveDidEthr(mmAddr);
 
-    let hexKey = '';
+    let response;
     try {
-      hexKey = await window.ethereum.request({
+      response = (await window.ethereum.request({
         method: 'wallet_invokeSnap',
         params: [
           snapId,
@@ -175,11 +176,11 @@ export const HomePageContainer: React.FC = () => {
             method: 'getVCAddress',
           },
         ],
-      });
-      console.log('Hex key:', hexKey);
+      })) as Response;
+      console.log('Hex key:', response);
 
-      if (didDocument) {
-        const res = await checkForKey(didDocument, hexKey);
+      if (didDocument && response.data) {
+        const res = await checkForKey(didDocument, response.data);
         if (!res) {
           console.log('Key not implemented yet');
           setEdKey(false);
