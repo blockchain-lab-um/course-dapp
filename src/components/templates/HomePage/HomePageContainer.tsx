@@ -38,13 +38,10 @@ export const HomePageContainer: React.FC = () => {
       //Check if Snap is Installed
       if (await isSnapInstalled()) {
         console.log('Snap installed.');
-        console.log('Checking if snap initialized...');
-        //Check if Snap is initialized, if its not, it will initialize automatically
-        console.log('Here');
-        //const initialized = await isSnapInitialized();
 
         if (mmAddr != null) {
-          //Check for existing EDKey attribute and VCs if storage is already initialized
+          //   //Check for existing EDKey attribute and VCs if storage is already initialized
+          await isSnapInitialized(mmAddr);
           await checkForEdKey(mmAddr);
           await checkForVc(mmAddr);
         }
@@ -52,9 +49,9 @@ export const HomePageContainer: React.FC = () => {
         //Ask user to install Snap and initialize snap storage
         const res = await installSnap();
         if (res) {
-          //await isSnapInitialized();
+          ////await isSnapInitialized();
           if (mmAddr != null) {
-            await checkForEdKey(mmAddr);
+            await isSnapInitialized(mmAddr);
             await checkForVc(mmAddr);
           }
         } else {
@@ -67,6 +64,7 @@ export const HomePageContainer: React.FC = () => {
     return;
   };
 
+  //// TODO improve this function, doesnt work properly when snap fails to install.
   const isSnapInstalled = async () => {
     const result = await window.ethereum.request({ method: 'wallet_getSnaps' });
     console.log('Snaps installed...', result);
@@ -84,7 +82,8 @@ export const HomePageContainer: React.FC = () => {
         params: [
           snapId,
           {
-            method: 'get_vcs',
+            method: 'getVCs',
+            params: [mmAddr],
           },
         ],
       })) as Response;
@@ -168,12 +167,14 @@ export const HomePageContainer: React.FC = () => {
 
     let response;
     try {
+      console.log('requesting VC address');
       response = (await window.ethereum.request({
         method: 'wallet_invokeSnap',
         params: [
           snapId,
           {
             method: 'getVCAddress',
+            params: [mmAddr],
           },
         ],
       })) as Response;
@@ -208,14 +209,14 @@ export const HomePageContainer: React.FC = () => {
     const { ethrDid, didDocument, gasPrice } = await resolveDidEthr();
 
     //Request ED key from MM Snap
-    let hexKey = '';
     try {
-      hexKey = await window.ethereum.request({
+      const hexKey = await window.ethereum.request({
         method: 'wallet_invokeSnap',
         params: [
           snapId,
           {
             method: 'getVCAddress',
+            params: [mmAddress],
           },
         ],
       });
@@ -223,7 +224,7 @@ export const HomePageContainer: React.FC = () => {
 
       //Check if attribute already exists
       if (didDocument) {
-        const res = await checkForKey(didDocument, hexKey);
+        const res = await checkForKey(didDocument, hexKey.data);
         if (!res) {
           //Add key as auth key using addAttribute from ethr-did
 
@@ -233,7 +234,7 @@ export const HomePageContainer: React.FC = () => {
           setSpinnerMsg('adding delegate...');
           const attRes = await ethrDid.setAttribute(
             'did/pub/Ed25519/veriKey/hex',
-            hexKey,
+            hexKey.data,
             86400,
             undefined,
             txOptions
@@ -286,8 +287,8 @@ export const HomePageContainer: React.FC = () => {
         params: [
           snapId,
           {
-            method: 'save_vc',
-            params: [VC],
+            method: 'saveVC',
+            params: [mmAddress, VC],
           },
         ],
       });
@@ -299,7 +300,7 @@ export const HomePageContainer: React.FC = () => {
     setCourseCompleted(true);
   };
 
-  const isSnapInitialized = async () => {
+  const isSnapInitialized = async (address: string) => {
     setSpinner(true);
     setSpinnerMsg('checking if snap is initialized...');
     console.log('Checking if snap is initialized...');
@@ -309,18 +310,19 @@ export const HomePageContainer: React.FC = () => {
         snapId,
         {
           method: 'isInitialized',
+          params: [address],
         },
       ],
     });
     console.log('Is initialized?', initialized);
-    if (initialized) {
+    if (initialized.data) {
       console.log('Snap properly initialized');
       setSnapInitialized(true);
       setSpinner(false);
       setSpinnerMsg('loading...');
       return true;
     } else {
-      await initializeSnap();
+      await initializeSnap(address);
     }
     setSpinner(false);
     setSpinnerMsg('loading...');
@@ -340,6 +342,7 @@ export const HomePageContainer: React.FC = () => {
     });
     if (res) {
       const snap = res.snaps;
+      //// TODO improve this
       if (snap[snapId]) {
         console.log('Sucessfuly installed.');
         setSpinner(false);
@@ -352,7 +355,7 @@ export const HomePageContainer: React.FC = () => {
     return false;
   };
 
-  const initializeSnap = async () => {
+  const initializeSnap = async (address: string) => {
     console.log('Initializing snap...');
     setSpinnerMsg('initializing snap...');
     try {
@@ -361,12 +364,13 @@ export const HomePageContainer: React.FC = () => {
         params: [
           snapId,
           {
-            method: 'init',
+            method: 'initialize',
+            params: [address],
           },
         ],
       });
       console.log(response);
-      setSnapInitialized(response);
+      setSnapInitialized(response.data);
       console.log('Snap initialized properly.');
     } catch (err) {
       console.error(err);

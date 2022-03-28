@@ -50,9 +50,11 @@ export const HomePage: React.FC<IConnectProps> = ({
               {snapInitialized && !edKey && !spinner && (
                 <AddAttributeForm addAttribute={addEdKey} />
               )}
-              {snapInitialized && edKey && !hasVC && (
-                <CourseForm completeCourse={completeCourse} />
-              )}
+              {snapInitialized &&
+                snapInitialized &&
+                edKey &&
+                !hasVC &&
+                !spinner && <CourseForm completeCourse={completeCourse} />}
               {snapInitialized && edKey && hasVC && (
                 <Error msg={'You already have a valid VC!'} />
               )}
