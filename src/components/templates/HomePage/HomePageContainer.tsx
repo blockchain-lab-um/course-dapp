@@ -16,12 +16,20 @@ const vcIssuerId =
 
 export const HomePageContainer: React.FC = () => {
   const [mmAddress, setMmAddress] = useState<string | null>(null);
-  const [snapInitialized, setSnapInitialized] = useState<boolean>(false);
+  const [snapInitialized, setSnapInitialized] = useState<boolean>(true);
   const [courseCompleted, setCourseCompleted] = useState<boolean>(false);
   const [spinner, setSpinner] = useState<boolean>(false);
   const [edKey, setEdKey] = useState<boolean>(false);
   const [hasVC, setHasVC] = useState<boolean>(false);
   const [spinnerMsg, setSpinnerMsg] = useState<string>('loading...');
+  const [view, setView] = useState<number>(0);
+  const [courseStarted, setCourseStarted] = useState<boolean>(false);
+
+  const switchView = (viewId: number) => {
+    if (view != viewId) {
+      setView(viewId);
+    }
+  };
 
   const connectMetamask = async () => {
     let mmAddr = null;
@@ -38,22 +46,10 @@ export const HomePageContainer: React.FC = () => {
       //Check if Snap is Installed
       if (await isSnapInstalled()) {
         console.log('Snap installed.');
-
-        if (mmAddr != null) {
-          //   //Check for existing EDKey attribute and VCs if storage is already initialized
-          await isSnapInitialized(mmAddr);
-          await checkForEdKey(mmAddr);
-          await checkForVc(mmAddr);
-        }
       } else {
         //Ask user to install Snap and initialize snap storage
         const res = await installSnap();
         if (res) {
-          ////await isSnapInitialized();
-          if (mmAddr != null) {
-            await isSnapInitialized(mmAddr);
-            await checkForVc(mmAddr);
-          }
         } else {
           console.log('Something went wrong...');
         }
@@ -62,6 +58,18 @@ export const HomePageContainer: React.FC = () => {
       console.log('Install Metamask');
     }
     return;
+  };
+
+  //TODO Fix error (new MM account -> start Course -> fails to initialize...)
+  const startCourse = async () => {
+    if (mmAddress != null && courseStarted == false) {
+      console.log('Starting course...');
+      setCourseStarted(true);
+      //   //Check for existing EDKey attribute and VCs if storage is already initialized
+      //await isSnapInitialized(mmAddress);
+      await checkForEdKey(mmAddress);
+      await checkForVc(mmAddress);
+    }
   };
 
   //// TODO improve this function, doesnt work properly when snap fails to install.
@@ -83,7 +91,6 @@ export const HomePageContainer: React.FC = () => {
           snapId,
           {
             method: 'getVCs',
-            params: [mmAddr],
           },
         ],
       })) as Response;
@@ -174,14 +181,13 @@ export const HomePageContainer: React.FC = () => {
           snapId,
           {
             method: 'getVCAddress',
-            params: [mmAddr],
           },
         ],
       })) as Response;
       console.log('Hex key:', response);
 
       if (didDocument && response.data) {
-        const res = await checkForKey(didDocument, response.data);
+        const res = await checkForKey(didDocument, response.data.split(':')[3]);
         if (!res) {
           console.log('Key not implemented yet');
           setEdKey(false);
@@ -216,7 +222,6 @@ export const HomePageContainer: React.FC = () => {
           snapId,
           {
             method: 'getVCAddress',
-            params: [mmAddress],
           },
         ],
       });
@@ -224,7 +229,7 @@ export const HomePageContainer: React.FC = () => {
 
       //Check if attribute already exists
       if (didDocument) {
-        const res = await checkForKey(didDocument, hexKey.data);
+        const res = await checkForKey(didDocument, hexKey.data.split(':')[3]);
         if (!res) {
           //Add key as auth key using addAttribute from ethr-did
 
@@ -234,7 +239,7 @@ export const HomePageContainer: React.FC = () => {
           setSpinnerMsg('adding delegate...');
           const attRes = await ethrDid.setAttribute(
             'did/pub/Ed25519/veriKey/hex',
-            hexKey.data,
+            hexKey.data.split(':')[3],
             86400,
             undefined,
             txOptions
@@ -288,7 +293,7 @@ export const HomePageContainer: React.FC = () => {
           snapId,
           {
             method: 'saveVC',
-            params: [mmAddress, VC],
+            params: [VC],
           },
         ],
       });
@@ -300,34 +305,34 @@ export const HomePageContainer: React.FC = () => {
     setCourseCompleted(true);
   };
 
-  const isSnapInitialized = async (address: string) => {
-    setSpinner(true);
-    setSpinnerMsg('checking if snap is initialized...');
-    console.log('Checking if snap is initialized...');
-    const initialized = await window.ethereum.request({
-      method: 'wallet_invokeSnap',
-      params: [
-        snapId,
-        {
-          method: 'isInitialized',
-          params: [address],
-        },
-      ],
-    });
-    console.log('Is initialized?', initialized);
-    if (initialized.data) {
-      console.log('Snap properly initialized');
-      setSnapInitialized(true);
-      setSpinner(false);
-      setSpinnerMsg('loading...');
-      return true;
-    } else {
-      await initializeSnap(address);
-    }
-    setSpinner(false);
-    setSpinnerMsg('loading...');
-    return false;
-  };
+  // const isSnapInitialized = async (address: string) => {
+  //   setSpinner(true);
+  //   setSpinnerMsg('checking if snap is initialized...');
+  //   console.log('Checking if snap is initialized...');
+  //   const initialized = await window.ethereum.request({
+  //     method: 'wallet_invokeSnap',
+  //     params: [
+  //       snapId,
+  //       {
+  //         method: 'isInitialized',
+  //         params: [address],
+  //       },
+  //     ],
+  //   });
+  //   console.log('Is initialized?', initialized);
+  //   if (initialized.data) {
+  //     console.log('Snap properly initialized');
+  //     setSnapInitialized(true);
+  //     setSpinner(false);
+  //     setSpinnerMsg('loading...');
+  //     return true;
+  //   } else {
+  //     await initializeSnap(address);
+  //   }
+  //   setSpinner(false);
+  //   setSpinnerMsg('loading...');
+  //   return false;
+  // };
 
   const installSnap = async () => {
     setSpinner(true);
@@ -355,30 +360,36 @@ export const HomePageContainer: React.FC = () => {
     return false;
   };
 
-  const initializeSnap = async (address: string) => {
-    console.log('Initializing snap...');
-    setSpinnerMsg('initializing snap...');
-    try {
-      const response = await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'initialize',
-            params: [address],
-          },
-        ],
-      });
-      console.log(response);
-      setSnapInitialized(response.data);
-      console.log('Snap initialized properly.');
-    } catch (err) {
-      console.error(err);
-      alert('Problem happened: ' + (err as Error).message || err);
-    }
-    setSpinnerMsg('loading...');
-    return;
-  };
+  // const initializeSnap = async (address: string) => {
+  //   console.log('Initializing snap...');
+  //   setSpinnerMsg('initializing snap...');
+  //   try {
+  //     const response = await window.ethereum.request({
+  //       method: 'wallet_invokeSnap',
+  //       params: [
+  //         snapId,
+  //         {
+  //           method: 'initialize',
+  //           params: [address],
+  //         },
+  //       ],
+  //     });
+  //     console.log(response);
+  //     setSnapInitialized(response.data);
+  //     if (response.data) {
+  //       console.log('Snap initialized properly.');
+  //     } else {
+  //       window.alert(
+  //         'Snap failed to initialize for selected address... Disconnect the wallet, Refresh the page and try again!'
+  //       );
+  //     }
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert('Problem happened: ' + (err as Error).message || err);
+  //   }
+  //   setSpinnerMsg('loading...');
+  //   return;
+  // };
 
   return (
     <HomePage
@@ -392,6 +403,10 @@ export const HomePageContainer: React.FC = () => {
       hasVC={hasVC}
       completeCourse={completeCourse}
       spinnerMsg={spinnerMsg}
+      switchView={switchView}
+      view={view}
+      startCourse={startCourse}
+      courseStarted={courseStarted}
     />
   );
 };

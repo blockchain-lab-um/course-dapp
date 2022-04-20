@@ -6,6 +6,9 @@ import { Header } from '../../modules/Header/Header';
 import { Error } from '../Error/Error';
 import { AddAttributeForm } from '../../modules/Forms/AddAttributeForm';
 import { CourseForm } from '../../modules/Forms/CourseForm';
+import { Navbar } from '../../modules/Navbar/Navbar';
+import { StartCourseForm } from '../../modules/Forms/StartCourseForm';
+import { Profile } from '../Profile/Profile';
 
 interface IConnectProps {
   mmAddress: string | null;
@@ -18,6 +21,10 @@ interface IConnectProps {
   hasVC: boolean;
   completeCourse: (name: string) => Promise<void>;
   spinnerMsg: string;
+  switchView: (viewId: number) => void;
+  view: number;
+  startCourse: () => void;
+  courseStarted: boolean;
 }
 
 export const HomePage: React.FC<IConnectProps> = ({
@@ -31,6 +38,10 @@ export const HomePage: React.FC<IConnectProps> = ({
   hasVC,
   completeCourse,
   spinnerMsg,
+  switchView,
+  view,
+  startCourse,
+  courseStarted,
 }) => {
   if (!window.ethereum) {
     return <Error msg={'MetaMask not installed!'} />;
@@ -42,25 +53,46 @@ export const HomePage: React.FC<IConnectProps> = ({
           connected={mmAddress != null}
           connMetaMask={connectMetamask}
         />
-        <div className="flex justify-center pt-20">
-          {courseCompleted && <CourseCompleted />}
-          {mmAddress != null && !courseCompleted && (
-            <>
-              <Spinner loading={spinner} msg={spinnerMsg} />
-              {snapInitialized && !edKey && !spinner && (
-                <AddAttributeForm addAttribute={addEdKey} />
-              )}
-              {snapInitialized &&
-                snapInitialized &&
-                edKey &&
-                !hasVC &&
-                !spinner && <CourseForm completeCourse={completeCourse} />}
-              {snapInitialized && edKey && hasVC && (
-                <Error msg={'You already have a valid VC!'} />
-              )}
-            </>
-          )}
-        </div>
+        <Navbar switchView={switchView} />
+        {view == 0 && (
+          <div className="flex justify-center pt-5">
+            {mmAddress == null && !spinner && (
+              <div className="text-2xl pt-32">
+                Connect to the MetaMask to start the Course!
+              </div>
+            )}
+            {mmAddress != null && !spinner && courseStarted == false && (
+              <StartCourseForm startCourse={startCourse} />
+            )}
+            {courseCompleted && courseStarted && <CourseCompleted />}
+            {mmAddress != null && !courseCompleted && (
+              <>
+                <Spinner loading={spinner} msg={spinnerMsg} />
+                {snapInitialized && !edKey && !spinner && courseStarted && (
+                  <AddAttributeForm addAttribute={addEdKey} />
+                )}
+                {snapInitialized &&
+                  snapInitialized &&
+                  edKey &&
+                  !hasVC &&
+                  !spinner && <CourseForm completeCourse={completeCourse} />}
+                {snapInitialized && edKey && hasVC && (
+                  <Error msg={'You already have a valid VC!'} />
+                )}
+              </>
+            )}
+          </div>
+        )}
+        {view == 1 && (
+          <div className="flex justify-center pt-5">
+            {mmAddress == null && (
+              <div className="text-2xl pt-32">
+                Connect to the MetaMask to view Profile!
+              </div>
+            )}
+            {mmAddress != null && <Profile mmAddress={mmAddress} />}
+          </div>
+        )}
       </div>
     );
   }
