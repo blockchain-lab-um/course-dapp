@@ -187,7 +187,7 @@ export const HomePageContainer: React.FC = () => {
       console.log('Hex key:', response);
 
       if (didDocument && response.data) {
-        const res = await checkForKey(didDocument, response.data.split(':')[3]);
+        const res = await checkForKey(didDocument, response.data);
         if (!res) {
           console.log('Key not implemented yet');
           setEdKey(false);
@@ -229,7 +229,7 @@ export const HomePageContainer: React.FC = () => {
 
       //Check if attribute already exists
       if (didDocument) {
-        const res = await checkForKey(didDocument, hexKey.data.split(':')[3]);
+        const res = await checkForKey(didDocument, hexKey.data);
         if (!res) {
           //Add key as auth key using addAttribute from ethr-did
 
@@ -239,7 +239,7 @@ export const HomePageContainer: React.FC = () => {
           setSpinnerMsg('adding delegate...');
           const attRes = await ethrDid.setAttribute(
             'did/pub/Ed25519/veriKey/hex',
-            hexKey.data.split(':')[3],
+            hexKey.data,
             86400,
             undefined,
             txOptions
