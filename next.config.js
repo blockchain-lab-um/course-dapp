@@ -7,5 +7,5 @@ const debug = process.env.NODE_ENV === 'production';
 
 module.exports = {
   nextConfig,
-  assetPrefix: !debug ? '/Next-gh-page-example/' : '',
+  assetPrefix: !debug ? '/course-dapp/' : '',
 };
