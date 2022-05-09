@@ -10,9 +10,7 @@ on:
 jobs:
   deployment:
     runs-on: ubuntu-latest
-  strategy:
-    matrix:
-      node-version: [16.x]
+
     steps:
       - uses: actions/checkout@v2
 
