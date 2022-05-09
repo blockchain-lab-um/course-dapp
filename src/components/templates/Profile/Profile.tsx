@@ -5,8 +5,8 @@ interface IConnectProps {
   mmAddress: string | null;
 }
 
-const snapId = 'local:http://localhost:8081/';
-
+// const snapId = 'local:http://localhost:8081/';
+const snapId = 'npm:@blockchain-lab-um/ssi-snap';
 export const Profile: React.FC<IConnectProps> = ({ mmAddress }) => {
   const [VCs, setVCs] = useState<Array<any>>([]);
   useEffect(() => {

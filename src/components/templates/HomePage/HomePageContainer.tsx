@@ -10,7 +10,8 @@ import { Response } from '../../../utils/interfaces';
 
 const rpcUrl = 'https://rinkeby.infura.io/v3/6e751a2e5ff741e5a01eab15e4e4a88b';
 const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
-const snapId = 'local:http://localhost:8081/';
+const snapId = 'npm:@blockchain-lab-um/ssi-snap';
+//const snapId = 'local:http://localhost:8081/';
 const vcIssuerId =
   'did:ethr:rinkeby:0x0241abd662da06d0af2f0152a80bc037f65a7f901160cfe1eb35ef3f0c532a2a4d';
 
@@ -44,10 +45,10 @@ export const HomePageContainer: React.FC = () => {
         });
       console.log('Checking for snap...');
       //Check if Snap is Installed
-      if (await isSnapInstalled()) {
+      if (await isSnapInstalled(snapId)) {
         console.log('Snap installed.');
       } else {
-        //Ask user to install Snap and initialize snap storage
+        //Ask user to install Snap
         const res = await installSnap();
         if (res) {
         } else {
@@ -73,12 +74,35 @@ export const HomePageContainer: React.FC = () => {
   };
 
   //// TODO improve this function, doesnt work properly when snap fails to install.
-  const isSnapInstalled = async () => {
-    const result = await window.ethereum.request({ method: 'wallet_getSnaps' });
-    console.log('Snaps installed...', result);
-    if (result[snapId]) return true;
-    else return false;
+  type GetSnapsResponse = {
+    [k: string]: {
+      permissionName?: string;
+      id?: string;
+      version?: string;
+      initialPermissions?: { [k: string]: unknown };
+    };
   };
+  async function getWalletSnaps(): Promise<GetSnapsResponse> {
+    return (await window.ethereum.request({
+      method: 'wallet_getSnaps',
+    })) as GetSnapsResponse;
+  }
+  async function isSnapInstalled(
+    snapOrigin: string,
+    version?: string
+  ): Promise<boolean> {
+    console.log(await getWalletSnaps());
+    try {
+      return !!Object.values(await getWalletSnaps()).find(
+        (permission) =>
+          permission.id === snapOrigin &&
+          (!version || permission.version === version)
+      );
+    } catch (e) {
+      console.log('Failed to obtain installed snaps', e);
+      return false;
+    }
+  }
 
   const checkForVc = async (mmAddr: string) => {
     setSpinner(true);
@@ -180,7 +204,7 @@ export const HomePageContainer: React.FC = () => {
         params: [
           snapId,
           {
-            method: 'getVCAddress',
+            method: 'getDIDAddress',
           },
         ],
       })) as Response;
@@ -221,7 +245,7 @@ export const HomePageContainer: React.FC = () => {
         params: [
           snapId,
           {
-            method: 'getVCAddress',
+            method: 'getDIDAddress',
           },
         ],
       });
@@ -341,7 +365,7 @@ export const HomePageContainer: React.FC = () => {
       method: 'wallet_enable',
       params: [
         {
-          wallet_snap: { [snapId]: {} },
+          wallet_snap: { [snapId]: { version: 'latest' } },
         },
       ],
     });
