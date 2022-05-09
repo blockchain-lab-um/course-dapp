@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
 };
 
-const debug = process.env.NODE_ENV === 'production';
+const debug = process.env.NODE_ENV !== 'production';
 
 module.exports = {
   nextConfig,
