@@ -300,7 +300,7 @@ export const HomePageContainer: React.FC = () => {
     };
     let body = { name: name, id: 'did:ethr:rinkeby:' + mmAddress };
     let VC = await axios
-      .post('http://localhost:3333/api/vc/issue-vc', body, axiosConfig)
+      .post('https://blockchain-lab-um.github.io/course-dapp/api/vc/issue-vc', body, axiosConfig)
       .then(function (response: any) {
         return response.data;
       })
