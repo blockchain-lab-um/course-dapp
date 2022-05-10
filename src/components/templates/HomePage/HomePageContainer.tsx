@@ -300,7 +300,7 @@ export const HomePageContainer: React.FC = () => {
     };
     let body = { name: name, id: 'did:ethr:rinkeby:' + mmAddress };
     let VC = await axios
-      .post('https://bclabum.informatika.uni-mb.si/ssi-demo-backend/course-dapp/api/vc/issue-vc', body, axiosConfig)
+      .post('https://bclabum.informatika.uni-mb.si/ssi-demo-backend/api/vc/issue-vc', body, axiosConfig)
       .then(function (response: any) {
         return response.data;
       })
