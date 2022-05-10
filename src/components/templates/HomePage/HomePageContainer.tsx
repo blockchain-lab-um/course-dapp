@@ -8,7 +8,7 @@ import { Web3Provider } from '@ethersproject/providers';
 import { HomePage } from './HomePage';
 import { Response } from '../../../utils/interfaces';
 
-const rpcUrl = 'https://rinkeby.infura.io/v3/28vkuK7MbZCrpTzfjE3LJJcYoho';
+const rpcUrl = 'https://rinkeby.infura.io/v3/213be20ed53945018f03b028b68556bb';
 const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
 const snapId = 'npm:@blockchain-lab-um/ssi-snap';
 //const snapId = 'local:http://localhost:8081/';
