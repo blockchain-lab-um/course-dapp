@@ -9,6 +9,7 @@ import { CourseForm } from '../../modules/Forms/CourseForm';
 import { Navbar } from '../../modules/Navbar/Navbar';
 import { StartCourseForm } from '../../modules/Forms/StartCourseForm';
 import { Profile } from '../Profile/Profile';
+import { Footer } from '../../modules/Footer/Footer';
 
 interface IConnectProps {
   mmAddress: string | null;
@@ -47,52 +48,59 @@ export const HomePage: React.FC<IConnectProps> = ({
     return <Error msg={'MetaMask not installed!'} />;
   } else {
     return (
-      <div>
-        <Header
-          address={mmAddress}
-          connected={mmAddress != null}
-          connMetaMask={connectMetamask}
-        />
-        <Navbar switchView={switchView} />
-        {view == 0 && (
-          <div className="flex justify-center pt-5">
-            {mmAddress == null && !spinner && (
-              <div className="text-2xl pt-32">
-                Connect to the MetaMask to start the Course!
+      <div className="flex flex-col h-screen justify-between">
+        <div>
+          <Header
+            address={mmAddress}
+            connected={mmAddress != null}
+            connMetaMask={connectMetamask}
+          />
+          <Navbar switchView={switchView} />
+          <div>
+            {view == 0 && (
+              <div className="flex justify-center pt-5">
+                {mmAddress == null && !spinner && (
+                  <div className="text-2xl pt-32">
+                    Connect to the MetaMask to start the Course!
+                  </div>
+                )}
+                {mmAddress != null && !spinner && courseStarted == false && (
+                  <StartCourseForm startCourse={startCourse} />
+                )}
+                {courseCompleted && courseStarted && <CourseCompleted />}
+                {mmAddress != null && !courseCompleted && (
+                  <>
+                    <Spinner loading={spinner} msg={spinnerMsg} />
+                    {snapInitialized && !edKey && !spinner && courseStarted && (
+                      <AddAttributeForm addAttribute={addEdKey} />
+                    )}
+                    {snapInitialized &&
+                      snapInitialized &&
+                      edKey &&
+                      !hasVC &&
+                      !spinner && (
+                        <CourseForm completeCourse={completeCourse} />
+                      )}
+                    {snapInitialized && edKey && hasVC && (
+                      <Error msg={'You already have a valid VC!'} />
+                    )}
+                  </>
+                )}
               </div>
             )}
-            {mmAddress != null && !spinner && courseStarted == false && (
-              <StartCourseForm startCourse={startCourse} />
-            )}
-            {courseCompleted && courseStarted && <CourseCompleted />}
-            {mmAddress != null && !courseCompleted && (
-              <>
-                <Spinner loading={spinner} msg={spinnerMsg} />
-                {snapInitialized && !edKey && !spinner && courseStarted && (
-                  <AddAttributeForm addAttribute={addEdKey} />
+            {view == 1 && (
+              <div className="flex justify-center pt-5">
+                {mmAddress == null && (
+                  <div className="text-2xl pt-32">
+                    Connect to the MetaMask to view Profile!
+                  </div>
                 )}
-                {snapInitialized &&
-                  snapInitialized &&
-                  edKey &&
-                  !hasVC &&
-                  !spinner && <CourseForm completeCourse={completeCourse} />}
-                {snapInitialized && edKey && hasVC && (
-                  <Error msg={'You already have a valid VC!'} />
-                )}
-              </>
-            )}
-          </div>
-        )}
-        {view == 1 && (
-          <div className="flex justify-center pt-5">
-            {mmAddress == null && (
-              <div className="text-2xl pt-32">
-                Connect to the MetaMask to view Profile!
+                {mmAddress != null && <Profile mmAddress={mmAddress} />}
               </div>
             )}
-            {mmAddress != null && <Profile mmAddress={mmAddress} />}
           </div>
-        )}
+        </div>
+        <Footer />
       </div>
     );
   }

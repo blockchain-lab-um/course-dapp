@@ -11,7 +11,6 @@ import { Response } from '../../../utils/interfaces';
 const rpcUrl = 'https://rinkeby.infura.io/v3/213be20ed53945018f03b028b68556bb';
 const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
 const snapId = 'npm:@blockchain-lab-um/ssi-snap';
-//const snapId = 'local:http://localhost:8081/';
 const vcIssuerId =
   'did:ethr:rinkeby:0x0241abd662da06d0af2f0152a80bc037f65a7f901160cfe1eb35ef3f0c532a2a4d';
 
@@ -34,7 +33,6 @@ export const HomePageContainer: React.FC = () => {
 
   const connectMetamask = async () => {
     let mmAddr = null;
-    // Get MM account
     if (window.ethereum) {
       window.ethereum
         .request({ method: 'eth_requestAccounts' })
@@ -44,11 +42,9 @@ export const HomePageContainer: React.FC = () => {
           setMmAddress(mmAddr);
         });
       console.log('Checking for snap...');
-      //Check if Snap is Installed
       if (await isSnapInstalled(snapId)) {
         console.log('Snap installed.');
       } else {
-        //Ask user to install Snap
         const res = await installSnap();
         if (res) {
         } else {
@@ -61,19 +57,14 @@ export const HomePageContainer: React.FC = () => {
     return;
   };
 
-  //TODO Fix error (new MM account -> start Course -> fails to initialize...)
   const startCourse = async () => {
     if (mmAddress != null && courseStarted == false) {
       console.log('Starting course...');
       setCourseStarted(true);
-      //   //Check for existing EDKey attribute and VCs if storage is already initialized
-      //await isSnapInitialized(mmAddress);
       await checkForEdKey(mmAddress);
       await checkForVc(mmAddress);
     }
   };
-
-  //// TODO improve this function, doesnt work properly when snap fails to install.
   type GetSnapsResponse = {
     [k: string]: {
       permissionName?: string;
@@ -234,11 +225,9 @@ export const HomePageContainer: React.FC = () => {
     console.log('Add key');
     setSpinner(true);
     setSpinnerMsg('preparing delegate...');
-    // Check if key already exists...
 
     const { ethrDid, didDocument, gasPrice } = await resolveDidEthr();
 
-    //Request ED key from MM Snap
     try {
       const hexKey = await window.ethereum.request({
         method: 'wallet_invokeSnap',
@@ -251,12 +240,9 @@ export const HomePageContainer: React.FC = () => {
       });
       console.log('Hex key:', hexKey);
 
-      //Check if attribute already exists
       if (didDocument) {
         const res = await checkForKey(didDocument, hexKey.data);
         if (!res) {
-          //Add key as auth key using addAttribute from ethr-did
-
           let gasLimit = 100000;
 
           const txOptions = { gasPrice, gasLimit };
@@ -269,12 +255,10 @@ export const HomePageContainer: React.FC = () => {
             txOptions
           );
           console.log('Adding attribute res', attRes);
-          // TODO Error res is false...
           if (attRes) {
             console.log('Sucessfuly added Ed Key!');
             setEdKey(true);
           }
-          //await ethrDid.setAttribute('did/pub/Ed25519/veriKey/base58', edKey);
         } else {
           console.log('Attribute already exists');
         }
@@ -291,7 +275,6 @@ export const HomePageContainer: React.FC = () => {
 
   const completeCourse = async (name: string) => {
     console.log(name, 'Completed the course!', mmAddress);
-    //Get VC
     let axiosConfig = {
       headers: {
         'Content-Type': 'application/json',
@@ -300,7 +283,11 @@ export const HomePageContainer: React.FC = () => {
     };
     let body = { name: name, id: 'did:ethr:rinkeby:' + mmAddress };
     let VC = await axios
-      .post('https://bclabum.informatika.uni-mb.si/ssi-demo-backend/api/vc/issue-vc', body, axiosConfig)
+      .post(
+        'https://bclabum.informatika.uni-mb.si/ssi-demo-backend/api/vc/issue-vc',
+        body,
+        axiosConfig
+      )
       .then(function (response: any) {
         return response.data;
       })
@@ -309,7 +296,6 @@ export const HomePageContainer: React.FC = () => {
       });
     console.log(VC);
 
-    //Add VC to MM
     try {
       const response = await window.ethereum.request({
         method: 'wallet_invokeSnap',
@@ -328,35 +314,6 @@ export const HomePageContainer: React.FC = () => {
     }
     setCourseCompleted(true);
   };
-
-  // const isSnapInitialized = async (address: string) => {
-  //   setSpinner(true);
-  //   setSpinnerMsg('checking if snap is initialized...');
-  //   console.log('Checking if snap is initialized...');
-  //   const initialized = await window.ethereum.request({
-  //     method: 'wallet_invokeSnap',
-  //     params: [
-  //       snapId,
-  //       {
-  //         method: 'isInitialized',
-  //         params: [address],
-  //       },
-  //     ],
-  //   });
-  //   console.log('Is initialized?', initialized);
-  //   if (initialized.data) {
-  //     console.log('Snap properly initialized');
-  //     setSnapInitialized(true);
-  //     setSpinner(false);
-  //     setSpinnerMsg('loading...');
-  //     return true;
-  //   } else {
-  //     await initializeSnap(address);
-  //   }
-  //   setSpinner(false);
-  //   setSpinnerMsg('loading...');
-  //   return false;
-  // };
 
   const installSnap = async () => {
     setSpinner(true);
@@ -383,37 +340,6 @@ export const HomePageContainer: React.FC = () => {
     setSpinnerMsg('loading...');
     return false;
   };
-
-  // const initializeSnap = async (address: string) => {
-  //   console.log('Initializing snap...');
-  //   setSpinnerMsg('initializing snap...');
-  //   try {
-  //     const response = await window.ethereum.request({
-  //       method: 'wallet_invokeSnap',
-  //       params: [
-  //         snapId,
-  //         {
-  //           method: 'initialize',
-  //           params: [address],
-  //         },
-  //       ],
-  //     });
-  //     console.log(response);
-  //     setSnapInitialized(response.data);
-  //     if (response.data) {
-  //       console.log('Snap initialized properly.');
-  //     } else {
-  //       window.alert(
-  //         'Snap failed to initialize for selected address... Disconnect the wallet, Refresh the page and try again!'
-  //       );
-  //     }
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert('Problem happened: ' + (err as Error).message || err);
-  //   }
-  //   setSpinnerMsg('loading...');
-  //   return;
-  // };
 
   return (
     <HomePage
