@@ -78,7 +78,8 @@ export const HomePage: React.FC<IConnectProps> = ({
                       snapInitialized &&
                       edKey &&
                       !hasVC &&
-                      !spinner && (
+                      !spinner &&
+                      courseStarted && (
                         <CourseForm completeCourse={completeCourse} />
                       )}
                     {snapInitialized && edKey && hasVC && (

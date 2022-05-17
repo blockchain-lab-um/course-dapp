@@ -11,15 +11,16 @@ import { Response } from '../../../utils/interfaces';
 const rpcUrl = 'https://rinkeby.infura.io/v3/213be20ed53945018f03b028b68556bb';
 const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
 const snapId = 'npm:@blockchain-lab-um/ssi-snap';
+//const snapId = 'local:http://localhost:8081/';
+
 const vcIssuerId =
   'did:ethr:rinkeby:0x0241abd662da06d0af2f0152a80bc037f65a7f901160cfe1eb35ef3f0c532a2a4d';
 
 export const HomePageContainer: React.FC = () => {
   const [mmAddress, setMmAddress] = useState<string | null>(null);
-  const [snapInitialized, setSnapInitialized] = useState<boolean>(true);
   const [courseCompleted, setCourseCompleted] = useState<boolean>(false);
   const [spinner, setSpinner] = useState<boolean>(false);
-  const [edKey, setEdKey] = useState<boolean>(false);
+  const [edKey, setEdKey] = useState<boolean>(true);
   const [hasVC, setHasVC] = useState<boolean>(false);
   const [spinnerMsg, setSpinnerMsg] = useState<string>('loading...');
   const [view, setView] = useState<number>(0);
@@ -61,7 +62,6 @@ export const HomePageContainer: React.FC = () => {
     if (mmAddress != null && courseStarted == false) {
       console.log('Starting course...');
       setCourseStarted(true);
-      await checkForEdKey(mmAddress);
       await checkForVc(mmAddress);
     }
   };
