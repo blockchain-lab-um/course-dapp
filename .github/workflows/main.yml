@@ -3,7 +3,7 @@ name: GitHub Pages
 on:
   push:
     branches:
-      - main
+      - andraz-mm
   pull_request:
 
 jobs:
