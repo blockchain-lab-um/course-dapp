@@ -23,7 +23,7 @@ export const VCCard: React.FC<IConnectProps> = ({ VC }) => {
   };
 
   return (
-    <div className="grid bg-white p-3 max-w-xl break-all">
+    <div className="grid bg-white p-3 max-w-xl break-all m-3">
       <b>Issuer:</b> <p>{VC.issuer.id}</p>
       <b>Subject:</b>
       <div className="p-2">

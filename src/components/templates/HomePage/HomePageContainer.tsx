@@ -8,13 +8,13 @@ import { Web3Provider } from '@ethersproject/providers';
 import { HomePage } from './HomePage';
 import { Response } from '../../../utils/interfaces';
 
-const rpcUrl = 'https://rinkeby.infura.io/v3/213be20ed53945018f03b028b68556bb';
+const rpcUrl = process.env.RPC_URL;
 const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
-const snapId = 'npm:@blockchain-lab-um/ssi-snap';
-//const snapId = 'local:http://localhost:8081/';
 
-const vcIssuerId =
-  'did:ethr:rinkeby:0x0241abd662da06d0af2f0152a80bc037f65a7f901160cfe1eb35ef3f0c532a2a4d';
+const snapId = process.env.SNAP_ID;
+const backend_url = process.env.BACKEND_URL;
+const vcIssuerId = process.env.VC_ISSUER as string;
+console.log('BACKEND', backend_url, snapId, vcIssuerId);
 
 export const HomePageContainer: React.FC = () => {
   const [mmAddress, setMmAddress] = useState<string | null>(null);
@@ -43,7 +43,7 @@ export const HomePageContainer: React.FC = () => {
           setMmAddress(mmAddr);
         });
       console.log('Checking for snap...');
-      if (await isSnapInstalled(snapId)) {
+      if (snapId && (await isSnapInstalled(snapId))) {
         console.log('Snap installed.');
       } else {
         const res = await installSnap();
@@ -56,6 +56,51 @@ export const HomePageContainer: React.FC = () => {
       console.log('Install Metamask');
     }
     return;
+  };
+
+  async function isSnapInstalled(
+    snapOrigin: string,
+    version?: string
+  ): Promise<boolean> {
+    console.log(await getWalletSnaps());
+    try {
+      return !!Object.values(await getWalletSnaps()).find(
+        (permission) =>
+          permission.id === snapOrigin &&
+          (!version || permission.version === version)
+      );
+    } catch (e) {
+      console.log('Failed to obtain installed snaps', e);
+      return false;
+    }
+  }
+
+  const installSnap = async () => {
+    setSpinner(true);
+    setSpinnerMsg('installing snap...');
+    if (snapId) {
+      const res = await window.ethereum.request({
+        method: 'wallet_enable',
+        params: [
+          {
+            wallet_snap: { [snapId]: { version: 'latest' } },
+          },
+        ],
+      });
+      if (res) {
+        const snap = res.snaps;
+        //// TODO improve this
+        if (snap[snapId]) {
+          console.log('Sucessfuly installed.');
+          setSpinner(false);
+          setSpinnerMsg('loading...');
+          return true;
+        }
+      }
+    }
+    setSpinner(false);
+    setSpinnerMsg('loading...');
+    return false;
   };
 
   const startCourse = async () => {
@@ -77,22 +122,6 @@ export const HomePageContainer: React.FC = () => {
     return (await window.ethereum.request({
       method: 'wallet_getSnaps',
     })) as GetSnapsResponse;
-  }
-  async function isSnapInstalled(
-    snapOrigin: string,
-    version?: string
-  ): Promise<boolean> {
-    console.log(await getWalletSnaps());
-    try {
-      return !!Object.values(await getWalletSnaps()).find(
-        (permission) =>
-          permission.id === snapOrigin &&
-          (!version || permission.version === version)
-      );
-    } catch (e) {
-      console.log('Failed to obtain installed snaps', e);
-      return false;
-    }
   }
 
   const checkForVc = async (mmAddr: string) => {
@@ -144,133 +173,51 @@ export const HomePageContainer: React.FC = () => {
     setSpinnerMsg('loading...');
   };
 
-  const resolveDidEthr = async (mmAddr?: string) => {
-    const provider = new Web3Provider((window as any).ethereum);
-    const chainNameOrId = (await provider.getNetwork()).chainId;
-    console.log(mmAddress, mmAddr, provider, chainNameOrId);
-    let addr = mmAddress;
-    if (mmAddr) addr = mmAddr;
-    const ethrDid = new EthrDID({
-      identifier: addr as string,
-      provider,
-      chainNameOrId,
-    });
-    const didDocument = (await didResolver.resolve(ethrDid.did)).didDocument;
-    console.log('DID:ETHR DID DOCUMENT:', didDocument);
-    let gasPrice = (await provider.getGasPrice()).toNumber() * 2;
-    return { ethrDid, didDocument, gasPrice };
-  };
-
-  const checkForKey = async (
-    didDocument: DIDDocument,
-    vcKey: string
-  ): Promise<boolean> => {
-    const veriKeys = didDocument?.verificationMethod;
-    let retVal = false;
-    if (veriKeys != null) {
-      console.log('veri keys', veriKeys);
-      veriKeys.map((key) => {
-        if (
-          key.publicKeyHex?.toString().toUpperCase() ===
-          vcKey.substring(2).toUpperCase()
-        ) {
-          retVal = true;
-        }
+  const getChallenge = async () => {
+    let axiosConfig = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    };
+    let challenge = await axios
+      .post(backend_url + '/api/vc/generate-challenge', axiosConfig)
+      .then(function (response: any) {
+        return response.data;
+      })
+      .catch(function (error: any) {
+        console.log(error);
       });
-    }
-    return retVal;
+    console.log('Challenge', challenge);
+    return challenge;
   };
 
-  const checkForEdKey = async (mmAddr: string) => {
-    console.log('Checking if key already exists...');
+  const verifyVP = async (vp: any, domain: string, challenge: string) => {
     setSpinner(true);
-    setSpinnerMsg('checking for existing delegate...');
-    const { ethrDid, didDocument, gasPrice } = await resolveDidEthr(mmAddr);
-
-    let response;
-    try {
-      console.log('requesting VC address');
-      response = (await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'getDIDAddress',
-          },
-        ],
-      })) as Response;
-      console.log('Hex key:', response);
-
-      if (didDocument && response.data) {
-        const res = await checkForKey(didDocument, response.data);
-        if (!res) {
-          console.log('Key not implemented yet');
-          setEdKey(false);
-        } else {
-          console.log('Key already exists!');
-          setEdKey(true);
-        }
-      }
-    } catch (e) {
-      console.error(e);
-      alert('Problem happened: ' + (e as Error).message || e);
-      setSpinner(false);
-      setSpinnerMsg('loading...');
-    }
-    setSpinner(false);
-    setSpinnerMsg('loading...');
-  };
-
-  const addEdKey = async () => {
-    console.log('Add key');
-    setSpinner(true);
-    setSpinnerMsg('preparing delegate...');
-
-    const { ethrDid, didDocument, gasPrice } = await resolveDidEthr();
-
-    try {
-      const hexKey = await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'getDIDAddress',
-          },
-        ],
+    setSpinnerMsg('Verifying validity of VP');
+    let axiosConfig = {
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    };
+    let body = {
+      vp: vp,
+      challenge: challenge,
+      domain: domain,
+      subjectAddress: mmAddress,
+    };
+    let res = await axios
+      .post(backend_url + '/api/vc/verify-vp', body, axiosConfig)
+      .then(function (response: any) {
+        return response.data;
+      })
+      .catch(function (error: any) {
+        console.log(error);
       });
-      console.log('Hex key:', hexKey);
-
-      if (didDocument) {
-        const res = await checkForKey(didDocument, hexKey.data);
-        if (!res) {
-          let gasLimit = 100000;
-
-          const txOptions = { gasPrice, gasLimit };
-          setSpinnerMsg('adding delegate...');
-          const attRes = await ethrDid.setAttribute(
-            'did/pub/Ed25519/veriKey/hex',
-            hexKey.data,
-            86400,
-            undefined,
-            txOptions
-          );
-          console.log('Adding attribute res', attRes);
-          if (attRes) {
-            console.log('Sucessfuly added Ed Key!');
-            setEdKey(true);
-          }
-        } else {
-          console.log('Attribute already exists');
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Problem happened: ' + (err as Error).message || err);
-      setSpinner(false);
-      setSpinnerMsg('loading...');
-    }
+    console.log(res);
     setSpinner(false);
-    setSpinnerMsg('loading...');
+    return res;
   };
 
   const completeCourse = async (name: string) => {
@@ -283,11 +230,7 @@ export const HomePageContainer: React.FC = () => {
     };
     let body = { name: name, id: 'did:ethr:rinkeby:' + mmAddress };
     let VC = await axios
-      .post(
-        'https://bclabum.informatika.uni-mb.si/ssi-demo-backend/api/vc/issue-vc',
-        body,
-        axiosConfig
-      )
+      .post(backend_url + '/api/vc/issue-vc', body, axiosConfig)
       .then(function (response: any) {
         return response.data;
       })
@@ -315,25 +258,35 @@ export const HomePageContainer: React.FC = () => {
     setCourseCompleted(true);
   };
 
-  const installSnap = async () => {
+  const openSecretRoom = async () => {
     setSpinner(true);
-    setSpinnerMsg('installing snap...');
-    const res = await window.ethereum.request({
-      method: 'wallet_enable',
-      params: [
-        {
-          wallet_snap: { [snapId]: { version: 'latest' } },
-        },
-      ],
-    });
-    if (res) {
-      const snap = res.snaps;
-      //// TODO improve this
-      if (snap[snapId]) {
-        console.log('Sucessfuly installed.');
+    setSpinnerMsg('Requesting VP');
+
+    const result = await getChallenge();
+    if (result && result.domain && result.challenge) {
+      const res = await window.ethereum.request({
+        method: 'wallet_invokeSnap',
+        params: [
+          snapId,
+          {
+            method: 'getVP',
+            params: [0, result.domain, result.challenge],
+          },
+        ],
+      });
+      console.log(res);
+      if (!res.data) return false;
+      if (!('error' in res.data)) {
         setSpinner(false);
         setSpinnerMsg('loading...');
-        return true;
+
+        if (
+          (await verifyVP(res.data, result.domain, result.challenge)) != false
+        ) {
+          setView(2);
+          return true;
+        }
+        return false;
       }
     }
     setSpinner(false);
@@ -347,7 +300,6 @@ export const HomePageContainer: React.FC = () => {
       connectMetamask={connectMetamask}
       spinner={spinner}
       courseCompleted={courseCompleted}
-      addEdKey={addEdKey}
       snapInitialized={true}
       edKey={edKey}
       hasVC={hasVC}
@@ -357,6 +309,7 @@ export const HomePageContainer: React.FC = () => {
       view={view}
       startCourse={startCourse}
       courseStarted={courseStarted}
+      openSecretRoom={openSecretRoom}
     />
   );
 };

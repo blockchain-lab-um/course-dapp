@@ -10,13 +10,13 @@ import { Navbar } from '../../modules/Navbar/Navbar';
 import { StartCourseForm } from '../../modules/Forms/StartCourseForm';
 import { Profile } from '../Profile/Profile';
 import { Footer } from '../../modules/Footer/Footer';
+import { SecretRoom } from '../SecretRoom/SecretRoom';
 
 interface IConnectProps {
   mmAddress: string | null;
   connectMetamask: () => void;
   courseCompleted: boolean;
   spinner: boolean;
-  addEdKey: () => void;
   snapInitialized: boolean;
   edKey: boolean;
   hasVC: boolean;
@@ -26,6 +26,7 @@ interface IConnectProps {
   view: number;
   startCourse: () => void;
   courseStarted: boolean;
+  openSecretRoom: () => void;
 }
 
 export const HomePage: React.FC<IConnectProps> = ({
@@ -33,7 +34,6 @@ export const HomePage: React.FC<IConnectProps> = ({
   connectMetamask,
   spinner,
   courseCompleted,
-  addEdKey,
   snapInitialized,
   edKey,
   hasVC,
@@ -43,6 +43,7 @@ export const HomePage: React.FC<IConnectProps> = ({
   view,
   startCourse,
   courseStarted,
+  openSecretRoom,
 }) => {
   if (!window.ethereum) {
     return <Error msg={'MetaMask not installed!'} />;
@@ -55,7 +56,11 @@ export const HomePage: React.FC<IConnectProps> = ({
             connected={mmAddress != null}
             connMetaMask={connectMetamask}
           />
-          <Navbar switchView={switchView} />
+          <Navbar
+            switchView={switchView}
+            hasVC={hasVC}
+            openSecretRoom={openSecretRoom}
+          />
           <div>
             {view == 0 && (
               <div className="flex justify-center pt-5">
@@ -71,9 +76,6 @@ export const HomePage: React.FC<IConnectProps> = ({
                 {mmAddress != null && !courseCompleted && (
                   <>
                     <Spinner loading={spinner} msg={spinnerMsg} />
-                    {snapInitialized && !edKey && !spinner && courseStarted && (
-                      <AddAttributeForm addAttribute={addEdKey} />
-                    )}
                     {snapInitialized &&
                       snapInitialized &&
                       edKey &&
@@ -82,7 +84,7 @@ export const HomePage: React.FC<IConnectProps> = ({
                       courseStarted && (
                         <CourseForm completeCourse={completeCourse} />
                       )}
-                    {snapInitialized && edKey && hasVC && (
+                    {snapInitialized && edKey && hasVC && !spinner && (
                       <Error msg={'You already have a valid VC!'} />
                     )}
                   </>
@@ -99,6 +101,7 @@ export const HomePage: React.FC<IConnectProps> = ({
                 {mmAddress != null && <Profile mmAddress={mmAddress} />}
               </div>
             )}
+            {view == 2 && <SecretRoom />}
           </div>
         </div>
         <Footer />
