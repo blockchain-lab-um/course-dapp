@@ -25,8 +25,8 @@ export const Profile: React.FC<IConnectProps> = ({ mmAddress }) => {
           },
         ],
       })) as Response;
-      console.log(response);
-      setVCs(response.data);
+      console.log(response.data);
+      setVCs(response.data.vcs);
     } catch (e) {
       console.log(e);
     }

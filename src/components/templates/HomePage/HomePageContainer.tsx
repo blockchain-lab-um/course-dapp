@@ -1,15 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { EthrDID } from 'ethr-did';
-import { Resolver, DIDDocument } from 'did-resolver';
-import { getResolver } from 'ethr-did-resolver';
+import React, { useState } from 'react';
 const axios = require('axios');
 import * as _ from 'lodash';
-import { Web3Provider } from '@ethersproject/providers';
 import { HomePage } from './HomePage';
 import { Response } from '../../../utils/interfaces';
-
-const rpcUrl = process.env.RPC_URL;
-const didResolver = new Resolver(getResolver({ rpcUrl, name: 'rinkeby' }));
 
 const snapId = process.env.SNAP_ID;
 const backend_url = process.env.BACKEND_URL;
@@ -20,7 +13,6 @@ export const HomePageContainer: React.FC = () => {
   const [mmAddress, setMmAddress] = useState<string | null>(null);
   const [courseCompleted, setCourseCompleted] = useState<boolean>(false);
   const [spinner, setSpinner] = useState<boolean>(false);
-  const [edKey, setEdKey] = useState<boolean>(true);
   const [hasVC, setHasVC] = useState<boolean>(false);
   const [spinnerMsg, setSpinnerMsg] = useState<string>('loading...');
   const [view, setView] = useState<number>(0);
@@ -140,8 +132,8 @@ export const HomePageContainer: React.FC = () => {
       })) as Response;
       console.log(response);
       try {
-        if (response.data.length > 0) {
-          response.data.map((vc: any) => {
+        if (response.data.vcs.length > 0) {
+          response.data.vcs.map((vc: any) => {
             console.log(
               vc.credentialSubject.id.split(':')[3].toString().toUpperCase(),
               mmAddr,
@@ -263,30 +255,51 @@ export const HomePageContainer: React.FC = () => {
     setSpinnerMsg('Requesting VP');
 
     const result = await getChallenge();
-    if (result && result.domain && result.challenge) {
-      const res = await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'getVP',
-            params: [0, result.domain, result.challenge],
-          },
-        ],
-      });
-      console.log(res);
-      if (!res.data) return false;
-      if (!('error' in res.data)) {
-        setSpinner(false);
-        setSpinnerMsg('loading...');
 
-        if (
-          (await verifyVP(res.data, result.domain, result.challenge)) != false
-        ) {
-          setView(2);
-          return true;
+    const res = (await window.ethereum.request({
+      method: 'wallet_invokeSnap',
+      params: [
+        snapId,
+        {
+          method: 'getVCs',
+          params: [
+            {
+              issuer:
+                'did:ethr:rinkeby:0x0241abd662da06d0af2f0152a80bc037f65a7f901160cfe1eb35ef3f0c532a2a4d',
+            },
+          ],
+        },
+      ],
+    })) as Response;
+    console.log(res.data.vcs);
+    if (res.data.vcs.length > 0) {
+      const vc_id = res.data.vcs[0].key;
+      console.log(vc_id);
+      if (result && result.domain && result.challenge) {
+        const res = await window.ethereum.request({
+          method: 'wallet_invokeSnap',
+          params: [
+            snapId,
+            {
+              method: 'getVP',
+              params: [vc_id, result.domain, result.challenge],
+            },
+          ],
+        });
+        console.log(res);
+        if (!res.data) return false;
+        if (!('error' in res.data)) {
+          setSpinner(false);
+          setSpinnerMsg('loading...');
+
+          if (
+            (await verifyVP(res.data, result.domain, result.challenge)) != false
+          ) {
+            setView(2);
+            return true;
+          }
+          return false;
         }
-        return false;
       }
     }
     setSpinner(false);
@@ -301,7 +314,6 @@ export const HomePageContainer: React.FC = () => {
       spinner={spinner}
       courseCompleted={courseCompleted}
       snapInitialized={true}
-      edKey={edKey}
       hasVC={hasVC}
       completeCourse={completeCourse}
       spinnerMsg={spinnerMsg}

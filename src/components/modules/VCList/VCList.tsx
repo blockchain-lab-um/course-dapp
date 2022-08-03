@@ -7,8 +7,8 @@ interface IConnectProps {
 export const VCList: React.FC<IConnectProps> = ({ VCs }) => {
   return (
     <div className="w-full p-3 flex justify-center">
-      {VCs.map((vc) => (
-        <VCCard VC={vc} />
+      {VCs.map((vc, id) => (
+        <VCCard VC={vc} key={id} />
       ))}
     </div>
   );

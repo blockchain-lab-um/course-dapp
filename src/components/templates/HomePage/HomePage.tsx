@@ -4,7 +4,6 @@ import * as _ from 'lodash';
 import Spinner from '../../elements/Spinner/Spinner';
 import { Header } from '../../modules/Header/Header';
 import { Error } from '../Error/Error';
-import { AddAttributeForm } from '../../modules/Forms/AddAttributeForm';
 import { CourseForm } from '../../modules/Forms/CourseForm';
 import { Navbar } from '../../modules/Navbar/Navbar';
 import { StartCourseForm } from '../../modules/Forms/StartCourseForm';
@@ -18,7 +17,6 @@ interface IConnectProps {
   courseCompleted: boolean;
   spinner: boolean;
   snapInitialized: boolean;
-  edKey: boolean;
   hasVC: boolean;
   completeCourse: (name: string) => Promise<void>;
   spinnerMsg: string;
@@ -35,7 +33,6 @@ export const HomePage: React.FC<IConnectProps> = ({
   spinner,
   courseCompleted,
   snapInitialized,
-  edKey,
   hasVC,
   completeCourse,
   spinnerMsg,
@@ -78,13 +75,12 @@ export const HomePage: React.FC<IConnectProps> = ({
                     <Spinner loading={spinner} msg={spinnerMsg} />
                     {snapInitialized &&
                       snapInitialized &&
-                      edKey &&
                       !hasVC &&
                       !spinner &&
                       courseStarted && (
                         <CourseForm completeCourse={completeCourse} />
                       )}
-                    {snapInitialized && edKey && hasVC && !spinner && (
+                    {snapInitialized && hasVC && !spinner && (
                       <Error msg={'You already have a valid VC!'} />
                     )}
                   </>
