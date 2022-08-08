@@ -10,6 +10,7 @@ import { StartCourseForm } from '../../modules/Forms/StartCourseForm';
 import { Profile } from '../Profile/Profile';
 import { Footer } from '../../modules/Footer/Footer';
 import { SecretRoom } from '../SecretRoom/SecretRoom';
+import { SSISnapApi } from '@blockchain-lab-um/ssi-snap-types';
 
 interface IConnectProps {
   mmAddress: string | null;
@@ -25,6 +26,7 @@ interface IConnectProps {
   startCourse: () => void;
   courseStarted: boolean;
   openSecretRoom: () => void;
+  api: SSISnapApi;
 }
 
 export const HomePage: React.FC<IConnectProps> = ({
@@ -41,6 +43,7 @@ export const HomePage: React.FC<IConnectProps> = ({
   startCourse,
   courseStarted,
   openSecretRoom,
+  api,
 }) => {
   if (!window.ethereum) {
     return <Error msg={'MetaMask not installed!'} />;
@@ -94,7 +97,9 @@ export const HomePage: React.FC<IConnectProps> = ({
                     Connect to the MetaMask to view Profile!
                   </div>
                 )}
-                {mmAddress != null && <Profile mmAddress={mmAddress} />}
+                {mmAddress != null && (
+                  <Profile mmAddress={mmAddress} api={api} />
+                )}
               </div>
             )}
             {view == 2 && <SecretRoom />}

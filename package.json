@@ -10,10 +10,12 @@
     "deploy": "rm -rf node_modules/.cache && next build && next export && touch out/.nojekyll && git add -f out/ && git commit -m \"Deploy Next.js to gh-pages\" && git subtree push --prefix out origin gh-pages"
   },
   "dependencies": {
+    "@blockchain-lab-um/ssi-snap-types": "^1.0.2",
     "@kiltprotocol/sdk-js": "^0.25.2",
     "@polkadot/extension-dapp": "^0.42.7",
     "@types/lodash": "^4.14.178",
     "@types/prop-types": "^15.7.4",
+    "@veramo/core": "^3.1.6-next.146",
     "autoprefixer": "^10.4.7",
     "axios": "^0.26.1",
     "dotenv": "^16.0.1",
