@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 const axios = require('axios');
-import * as _ from 'lodash';
 import { HomePage } from './HomePage';
-import { Response } from '../../../utils/interfaces';
 import { SSISnapApi } from '@blockchain-lab-um/ssi-snap-types';
-import { MetaMaskSSISnap } from '../../../utils/snap';
+import { initiateSSISnap } from '../../../utils/snap';
 
 const snapId = process.env.SNAP_ID;
 const backend_url = process.env.BACKEND_URL;
@@ -19,25 +17,13 @@ export const HomePageContainer: React.FC = () => {
   const [spinnerMsg, setSpinnerMsg] = useState<string>('loading...');
   const [view, setView] = useState<number>(0);
   const [courseStarted, setCourseStarted] = useState<boolean>(false);
-  const [snapInstalled, setSnapInstalled] = useState<boolean>(false);
-  const [api, setApi] = useState<SSISnapApi | null>(null);
+  const [api, setApi] = useState<SSISnapApi | undefined>(undefined);
 
   const switchView = (viewId: number) => {
     if (view != viewId) {
       setView(viewId);
     }
   };
-
-  useEffect(() => {
-    (async () => {
-      if (snapInstalled) {
-        const MM = new MetaMaskSSISnap(snapId as string);
-        const ssiSnapApi = await MM.getSSISnapApi();
-        console.log('Setting api...');
-        setApi(ssiSnapApi);
-      }
-    })();
-  }, [snapInstalled]);
 
   const connectMetamask = async () => {
     let mmAddr = null;
@@ -49,80 +35,12 @@ export const HomePageContainer: React.FC = () => {
           mmAddr = result[0];
           setMmAddress(mmAddr);
         });
-      console.log('Checking for snap...');
-      if (await isMetamaskSnapsSupported()) {
-        if (snapId && (await isSnapInstalled(snapId))) {
-          console.log('Snap installed.');
-          setSnapInstalled(true);
-        } else {
-          const res = await installSnap();
-          if (res) {
-            setSnapInstalled(true);
-          } else {
-            console.log('Something went wrong...');
-          }
-        }
-      } else {
-        console.log('Install Metamask');
+      const result = await initiateSSISnap(snapId as string);
+      if (result.isSnapInstalled) {
+        setApi(await result.snap?.getSSISnapApi());
       }
     }
     return;
-  };
-
-  async function isMetamaskSnapsSupported(): Promise<
-    GetSnapsResponse | boolean
-  > {
-    try {
-      const res = await getWalletSnaps();
-      console.log('Snaps supported');
-      return res;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  async function isSnapInstalled(
-    snapOrigin: string,
-    version?: string
-  ): Promise<boolean> {
-    console.log(await getWalletSnaps());
-    try {
-      return !!Object.values(await getWalletSnaps()).find(
-        (permission) =>
-          permission.id === snapOrigin &&
-          (!version || permission.version === version)
-      );
-    } catch (e) {
-      console.log('Failed to obtain installed snaps', e);
-      return false;
-    }
-  }
-
-  const installSnap = async () => {
-    setSpinner(true);
-    setSpinnerMsg('installing snap...');
-    if (snapId) {
-      const res = await window.ethereum.request({
-        method: 'wallet_enable',
-        params: [
-          {
-            wallet_snap: { [snapId]: { version: 'latest' } },
-          },
-        ],
-      });
-      if (res) {
-        const snap = res.snaps;
-        if (snap[snapId]) {
-          console.log('Sucessfuly installed.');
-          setSpinner(false);
-          setSpinnerMsg('loading...');
-          return true;
-        }
-      }
-    }
-    setSpinner(false);
-    setSpinnerMsg('loading...');
-    return false;
   };
 
   const startCourse = async () => {

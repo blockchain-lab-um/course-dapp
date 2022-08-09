@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Response } from '../../../utils/interfaces';
 import { VCList } from '../../modules/VCList/VCList';
 import { SSISnapApi } from '@blockchain-lab-um/ssi-snap-types';
 interface IConnectProps {
@@ -17,7 +16,7 @@ export const Profile: React.FC<IConnectProps> = ({ mmAddress, api }) => {
 
   const getVCs = async () => {
     try {
-      const response = await api.getVCs({});
+      const response = await api.getVCs();
       console.log(response);
       setVCs(response);
     } catch (e) {

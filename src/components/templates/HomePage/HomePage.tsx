@@ -1,6 +1,5 @@
 import React from 'react';
 import { CourseCompleted } from '../CourseCompleted/CourseCompleted';
-import * as _ from 'lodash';
 import Spinner from '../../elements/Spinner/Spinner';
 import { Header } from '../../modules/Header/Header';
 import { Error } from '../Error/Error';
