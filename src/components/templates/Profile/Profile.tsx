@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Response } from '../../../utils/interfaces';
 import { VCList } from '../../modules/VCList/VCList';
+import { SSISnapApi } from '@blockchain-lab-um/ssi-snap-types';
 interface IConnectProps {
   mmAddress: string | null;
+  api: SSISnapApi;
 }
 
 const snapId = process.env.SNAP_ID;
-export const Profile: React.FC<IConnectProps> = ({ mmAddress }) => {
+export const Profile: React.FC<IConnectProps> = ({ mmAddress, api }) => {
   const [VCs, setVCs] = useState<Array<any>>([]);
   useEffect(() => {
     console.log('Getting VCs...');
@@ -15,18 +16,9 @@ export const Profile: React.FC<IConnectProps> = ({ mmAddress }) => {
 
   const getVCs = async () => {
     try {
-      const response = (await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'getVCs',
-            params: [mmAddress],
-          },
-        ],
-      })) as Response;
-      console.log(response.data);
-      setVCs(response.data.vcs);
+      const response = await api.getVCs();
+      console.log(response);
+      setVCs(response);
     } catch (e) {
       console.log(e);
     }

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 const axios = require('axios');
-import * as _ from 'lodash';
 import { HomePage } from './HomePage';
-import { Response } from '../../../utils/interfaces';
+import { SSISnapApi } from '@blockchain-lab-um/ssi-snap-types';
+import { initiateSSISnap } from '../../../utils/snap';
 
 const snapId = process.env.SNAP_ID;
 const backend_url = process.env.BACKEND_URL;
@@ -17,6 +17,7 @@ export const HomePageContainer: React.FC = () => {
   const [spinnerMsg, setSpinnerMsg] = useState<string>('loading...');
   const [view, setView] = useState<number>(0);
   const [courseStarted, setCourseStarted] = useState<boolean>(false);
+  const [api, setApi] = useState<SSISnapApi | undefined>(undefined);
 
   const switchView = (viewId: number) => {
     if (view != viewId) {
@@ -34,65 +35,12 @@ export const HomePageContainer: React.FC = () => {
           mmAddr = result[0];
           setMmAddress(mmAddr);
         });
-      console.log('Checking for snap...');
-      if (snapId && (await isSnapInstalled(snapId))) {
-        console.log('Snap installed.');
-      } else {
-        const res = await installSnap();
-        if (res) {
-        } else {
-          console.log('Something went wrong...');
-        }
+      const result = await initiateSSISnap(snapId as string);
+      if (result.isSnapInstalled) {
+        setApi(await result.snap?.getSSISnapApi());
       }
-    } else {
-      console.log('Install Metamask');
     }
     return;
-  };
-
-  async function isSnapInstalled(
-    snapOrigin: string,
-    version?: string
-  ): Promise<boolean> {
-    console.log(await getWalletSnaps());
-    try {
-      return !!Object.values(await getWalletSnaps()).find(
-        (permission) =>
-          permission.id === snapOrigin &&
-          (!version || permission.version === version)
-      );
-    } catch (e) {
-      console.log('Failed to obtain installed snaps', e);
-      return false;
-    }
-  }
-
-  const installSnap = async () => {
-    setSpinner(true);
-    setSpinnerMsg('installing snap...');
-    if (snapId) {
-      const res = await window.ethereum.request({
-        method: 'wallet_enable',
-        params: [
-          {
-            wallet_snap: { [snapId]: { version: 'latest' } },
-          },
-        ],
-      });
-      if (res) {
-        const snap = res.snaps;
-        //// TODO improve this
-        if (snap[snapId]) {
-          console.log('Sucessfuly installed.');
-          setSpinner(false);
-          setSpinnerMsg('loading...');
-          return true;
-        }
-      }
-    }
-    setSpinner(false);
-    setSpinnerMsg('loading...');
-    return false;
   };
 
   const startCourse = async () => {
@@ -121,39 +69,38 @@ export const HomePageContainer: React.FC = () => {
     setSpinnerMsg('checking for existing vc...');
     console.log('Checking if user already has a valid VC..');
     try {
-      const response = (await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'getVCs',
-          },
-        ],
-      })) as Response;
-      console.log(response);
-      try {
-        if (response.data.vcs.length > 0) {
-          response.data.vcs.map((vc: any) => {
-            console.log(
-              vc.credentialSubject.id.split(':')[3].toString().toUpperCase(),
-              mmAddr,
-              vcIssuerId.toUpperCase(),
-              vc.issuer.id.toString().toUpperCase()
-            );
-            if (
-              vc.credentialSubject.id.split(':')[3].toString().toUpperCase() ===
-                mmAddr.toUpperCase() &&
-              vc.issuer.id.toString().toUpperCase() === vcIssuerId.toUpperCase()
-            ) {
-              console.log('Valid VC found!');
-              setHasVC(true);
-            }
-          });
+      if (api) {
+        console.log('API', api);
+        console.log('Getting VCs...');
+        const vcs = await api.getVCs({});
+        console.log(vcs);
+        try {
+          if (vcs.length > 0) {
+            vcs.map((vc: any) => {
+              console.log(
+                vc.credentialSubject.id.split(':')[3].toString().toUpperCase(),
+                mmAddr,
+                vcIssuerId.toUpperCase(),
+                vc.issuer.id.toString().toUpperCase()
+              );
+              if (
+                vc.credentialSubject.id
+                  .split(':')[3]
+                  .toString()
+                  .toUpperCase() === mmAddr.toUpperCase() &&
+                vc.issuer.id.toString().toUpperCase() ===
+                  vcIssuerId.toUpperCase()
+              ) {
+                console.log('Valid VC found!');
+                setHasVC(true);
+              }
+            });
+          }
+        } catch (e) {
+          console.log('No valid VCs found!', e);
+          setSpinner(false);
+          setSpinnerMsg('loading...');
         }
-      } catch (e) {
-        console.log('No valid VCs found!', e);
-        setSpinner(false);
-        setSpinnerMsg('loading...');
       }
     } catch (err) {
       console.error(err);
@@ -232,17 +179,10 @@ export const HomePageContainer: React.FC = () => {
     console.log(VC);
 
     try {
-      const response = await window.ethereum.request({
-        method: 'wallet_invokeSnap',
-        params: [
-          snapId,
-          {
-            method: 'saveVC',
-            params: [VC],
-          },
-        ],
-      });
-      console.log(response);
+      if (api) {
+        const res = await api.saveVC(VC);
+        console.log(res);
+      }
     } catch (err) {
       console.error(err);
       alert('Problem happened: ' + (err as Error).message || err);
@@ -255,49 +195,28 @@ export const HomePageContainer: React.FC = () => {
     setSpinnerMsg('Requesting VP');
 
     const result = await getChallenge();
+    if (api) {
+      const vcs = await api.getVCs({});
+      console.log(vcs);
+      if (vcs.length > 0) {
+        const vc_id = vcs[0].key;
+        console.log(vc_id);
+        if (result && result.domain && result.challenge) {
+          try {
+            const res = await api.getVP(vc_id, result.domain, result.challenge);
+            console.log(res);
 
-    const res = (await window.ethereum.request({
-      method: 'wallet_invokeSnap',
-      params: [
-        snapId,
-        {
-          method: 'getVCs',
-          params: [
-            {
-              issuer:
-                'did:ethr:rinkeby:0x0241abd662da06d0af2f0152a80bc037f65a7f901160cfe1eb35ef3f0c532a2a4d',
-            },
-          ],
-        },
-      ],
-    })) as Response;
-    console.log(res.data.vcs);
-    if (res.data.vcs.length > 0) {
-      const vc_id = res.data.vcs[0].key;
-      console.log(vc_id);
-      if (result && result.domain && result.challenge) {
-        const res = await window.ethereum.request({
-          method: 'wallet_invokeSnap',
-          params: [
-            snapId,
-            {
-              method: 'getVP',
-              params: [vc_id, result.domain, result.challenge],
-            },
-          ],
-        });
-        console.log(res);
-        if (!res.data) return false;
-        if (!('error' in res.data)) {
-          setSpinner(false);
-          setSpinnerMsg('loading...');
-
-          if (
-            (await verifyVP(res.data, result.domain, result.challenge)) != false
-          ) {
-            setView(2);
-            return true;
+            if (
+              (await verifyVP(res, result.domain, result.challenge)) != false
+            ) {
+              setView(2);
+              return true;
+            }
+          } catch (e) {
+            console.log(e);
+            setSpinner(false);
           }
+          setSpinner(false);
           return false;
         }
       }
@@ -322,6 +241,7 @@ export const HomePageContainer: React.FC = () => {
       startCourse={startCourse}
       courseStarted={courseStarted}
       openSecretRoom={openSecretRoom}
+      api={api as SSISnapApi}
     />
   );
 };
