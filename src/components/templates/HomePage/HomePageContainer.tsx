@@ -37,7 +37,8 @@ export const HomePageContainer: React.FC = () => {
         });
       const result = await initiateSSISnap(snapId as string);
       if (result.isSnapInstalled) {
-        setApi(await result.snap?.getSSISnapApi());
+        const api = await result.snap?.getSSISnapApi();
+        setApi(api);
       }
     }
     return;
