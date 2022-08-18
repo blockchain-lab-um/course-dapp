@@ -21,6 +21,7 @@ export async function initiateSSISnap(
     const metamaskSSISnap = await enableSSISnap({
       snapId: snapId,
       version: 'latest',
+      supportedMethods: ['did:ethr'],
     });
 
     isInstalled = true;
