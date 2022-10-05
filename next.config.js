@@ -10,7 +10,7 @@ const debug = process.env.NODE_ENV !== 'production';
 
 module.exports = {
   nextConfig,
-  assetPrefix: !debug ? '/course-dapp/' : '',
+  //assetPrefix: !debug ? '/course-dapp/' : '',
   env: {
     SNAP_ID: process.env.SNAP_ID,
     RPC_URL: process.env.RPC_URL,

@@ -17,9 +17,13 @@ export async function initiateSSISnap(
 ): Promise<SnapInitializationResponse> {
   try {
     console.log('Attempting to connect to snap...');
-    const metamaskSSISnap = await enableSSISnap(snapId, {
+
+    const metamaskSSISnap = await enableSSISnap({
+      snapId: snapId,
       version: 'latest',
+      supportedMethods: ['did:ethr'],
     });
+
     isInstalled = true;
     console.log('Snap installed!');
     return { isSnapInstalled: true, snap: metamaskSSISnap };

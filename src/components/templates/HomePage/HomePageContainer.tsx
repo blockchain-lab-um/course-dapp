@@ -28,6 +28,8 @@ export const HomePageContainer: React.FC = () => {
   const connectMetamask = async () => {
     let mmAddr = null;
     if (window.ethereum) {
+      setSpinner(true);
+      setSpinnerMsg('Connecting to Snap...');
       window.ethereum
         .request({ method: 'eth_requestAccounts' })
         .then((result: React.SetStateAction<string | null>[]) => {
@@ -37,8 +39,11 @@ export const HomePageContainer: React.FC = () => {
         });
       const result = await initiateSSISnap(snapId as string);
       if (result.isSnapInstalled) {
-        setApi(await result.snap?.getSSISnapApi());
+        const api = await result.snap?.getSSISnapApi();
+        setApi(api);
+        setSpinner(false);
       }
+      setSpinner(false);
     }
     return;
   };
