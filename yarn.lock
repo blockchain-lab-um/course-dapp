@@ -71,18 +71,18 @@
     "@babel/helper-validator-identifier" "^7.19.1"
     to-fast-properties "^2.0.0"
 
-"@blockchain-lab-um/ssi-snap-connector@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@blockchain-lab-um/ssi-snap-connector/-/ssi-snap-connector-1.0.7.tgz#10ace7fea418fa6bfcbe19074a19e079b56192b3"
-  integrity sha512-4t+sHAb7SdxQSopxpEJdl5oUs9ocn1eeul8IvfNtKDORALyxzetU/HEDzDvRojM1lcOLltMe3ITS0SFrowY6Eg==
+"@blockchain-lab-um/ssi-snap-connector@^1.0.8":
+  version "1.0.8"
+  resolved "https://registry.yarnpkg.com/@blockchain-lab-um/ssi-snap-connector/-/ssi-snap-connector-1.0.8.tgz#bdd1af5ee03c79e2e3f9f171365aefa1397a62b2"
+  integrity sha512-ThqAGeAV+MYP2ScwjhXYJmW81JWRjuqd0ZD24jzdv0dX7kN3lmnAuyslSBku+91bJCrVwC2y4byoTGv/hiKe4Q==
   dependencies:
-    "@blockchain-lab-um/ssi-snap-types" "1.0.10"
+    "@blockchain-lab-um/ssi-snap-types" "1.0.11"
     "@veramo/core" "^4.0.2-next.9"
 
-"@blockchain-lab-um/ssi-snap-types@1.0.10", "@blockchain-lab-um/ssi-snap-types@^1.0.10":
-  version "1.0.10"
-  resolved "https://registry.yarnpkg.com/@blockchain-lab-um/ssi-snap-types/-/ssi-snap-types-1.0.10.tgz#f814df29882cc6c88b8a02c74cd0990f0c60cc65"
-  integrity sha512-3cz1e307CugdPAZNoTN156DLWLvSkTKtXwJX4C1ry2zeqWcq1YtWAd0GT/nfjmc1ouYDk1hjOrr9L2lycregSg==
+"@blockchain-lab-um/ssi-snap-types@1.0.11", "@blockchain-lab-um/ssi-snap-types@^1.0.11":
+  version "1.0.11"
+  resolved "https://registry.yarnpkg.com/@blockchain-lab-um/ssi-snap-types/-/ssi-snap-types-1.0.11.tgz#af25a8f4cb60cd58cef7325c21083d9e8042d675"
+  integrity sha512-duVVzemitpQF7p3lR8OhRBuQeYW7lQ1UlljaEo0GgpZwA1du25WHLcztJ5sJKt72dASLyr/3EAHstG9yhCOTrg==
   dependencies:
     "@veramo/core" "^3.1.6-next.146"
 
