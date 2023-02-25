@@ -16,7 +16,7 @@ export const Profile: React.FC<IConnectProps> = ({ mmAddress, api }) => {
 
   const getVCs = async () => {
     try {
-      const response = await api.getVCs();
+      const response = await api.queryVCs();
       console.log(response);
       setVCs(response);
     } catch (e) {

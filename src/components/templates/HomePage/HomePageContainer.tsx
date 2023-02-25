@@ -77,11 +77,12 @@ export const HomePageContainer: React.FC = () => {
       if (api) {
         console.log('API', api);
         console.log('Getting VCs...');
-        const vcs = await api.getVCs({});
+        const vcs = await api.queryVCs();
         console.log(vcs);
         try {
           if (vcs.length > 0) {
             vcs.map((vc: any) => {
+              vc = vc.data;
               console.log(
                 vc.credentialSubject.id.split(':')[3].toString().toUpperCase(),
                 mmAddr,
@@ -201,14 +202,23 @@ export const HomePageContainer: React.FC = () => {
 
     const result = await getChallenge();
     if (api) {
-      const vcs = await api.getVCs({});
-      console.log(vcs);
+      // TODO - get all VCs issued by correct issuer
+      const vcs = await api.queryVCs();
+      console.log('Returned VCs:', vcs);
       if (vcs.length > 0) {
-        const vc_id = vcs[0].key;
-        console.log(vc_id);
+        const vc_id = vcs[0].metadata.id;
+        console.log('VC ID', vc_id);
         if (result && result.domain && result.challenge) {
           try {
-            const res = await api.getVP(vc_id, result.domain, result.challenge);
+            const res = await api.createVP({
+              vcs: [{ id: vc_id }],
+              proofFormat: 'jwt',
+              proofOptions: {
+                type: null,
+                domain: result.domain,
+                challenge: result.challenge,
+              },
+            });
             console.log(res);
 
             if (
