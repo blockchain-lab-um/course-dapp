@@ -11,7 +11,8 @@
     "deploy": "rm -rf node_modules/.cache && next build && next export && touch out/.nojekyll && git add -f out/ && git commit -m \"Deploy Next.js to gh-pages\" && git subtree push --prefix out origin gh-pages"
   },
   "dependencies": {
-    "@blockchain-lab-um/ssi-snap-connector": "../ssi-snap/packages/connector",
+    "@blockchain-lab-um/ssi-snap-connector": "1.4.0",
+    "@blockchain-lab-um/ssi-snap-types": "1.4.0",
     "@veramo/core": "^4.2.0",
     "autoprefixer": "^10.4.7",
     "axios": "^0.26.1",

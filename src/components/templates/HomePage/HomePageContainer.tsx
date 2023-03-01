@@ -173,7 +173,7 @@ export const HomePageContainer: React.FC = () => {
         'Access-Control-Allow-Origin': '*',
       },
     };
-    let body = { name: name, id: 'did:ethr:rinkeby:' + mmAddress };
+    let body = { name: name, id: 'did:ethr:0x5:' + mmAddress };
     let VC = await axios
       .post(backend_url + '/api/vc/issue-vc', body, axiosConfig)
       .then(function (response: any) {
