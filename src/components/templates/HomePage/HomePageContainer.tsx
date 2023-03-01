@@ -40,7 +40,7 @@ export const HomePageContainer: React.FC = () => {
       const result = await initiateSSISnap(snapId as string);
       if (result.isSnapInstalled) {
         const api = await result.snap?.getSSISnapApi();
-        setApi(api);
+        setApi(api as unknown as SSISnapApi);
         setSpinner(false);
       }
       setSpinner(false);
@@ -214,9 +214,8 @@ export const HomePageContainer: React.FC = () => {
               vcs: [{ id: vc_id }],
               proofFormat: 'jwt',
               proofOptions: {
-                type: null,
-                domain:
-                  'did:ethr:0x5:0x5Fd68bcc0Cf3844B4Ada2378b23A0bD46625CC6E',
+                type: '',
+                domain: result.domain,
                 challenge: result.challenge,
               },
             });
