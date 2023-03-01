@@ -215,14 +215,19 @@ export const HomePageContainer: React.FC = () => {
               proofFormat: 'jwt',
               proofOptions: {
                 type: null,
-                domain: result.domain,
+                domain:
+                  'did:ethr:0x5:0x5Fd68bcc0Cf3844B4Ada2378b23A0bD46625CC6E',
                 challenge: result.challenge,
               },
             });
             console.log(res);
 
             if (
-              (await verifyVP(res, result.domain, result.challenge)) != false
+              (await verifyVP(
+                res,
+                'did:ethr:0x5:0x5Fd68bcc0Cf3844B4Ada2378b23A0bD46625CC6E',
+                result.challenge
+              )) != false
             ) {
               setView(2);
               return true;
