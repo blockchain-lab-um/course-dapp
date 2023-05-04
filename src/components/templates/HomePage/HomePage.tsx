@@ -9,7 +9,7 @@ import { StartCourseForm } from '../../modules/Forms/StartCourseForm';
 import { Profile } from '../Profile/Profile';
 import { Footer } from '../../modules/Footer/Footer';
 import { SecretRoom } from '../SecretRoom/SecretRoom';
-import { SSISnapApi } from '@blockchain-lab-um/ssi-snap-types';
+import { MascaApi } from '@blockchain-lab-um/masca-types';
 
 interface IConnectProps {
   mmAddress: string | null;
@@ -25,7 +25,7 @@ interface IConnectProps {
   startCourse: () => void;
   courseStarted: boolean;
   openSecretRoom: () => void;
-  api: SSISnapApi;
+  api: MascaApi;
 }
 
 export const HomePage: React.FC<IConnectProps> = ({
@@ -48,7 +48,7 @@ export const HomePage: React.FC<IConnectProps> = ({
     return <Error msg={'MetaMask not installed!'} />;
   } else {
     return (
-      <div className="flex flex-col h-screen justify-between">
+      <div className="flex flex-col justify-between h-screen">
         <div>
           <Header
             address={mmAddress}
@@ -64,7 +64,7 @@ export const HomePage: React.FC<IConnectProps> = ({
             {view == 0 && (
               <div className="flex justify-center pt-5">
                 {mmAddress == null && !spinner && (
-                  <div className="text-2xl pt-32">
+                  <div className="pt-32 text-2xl">
                     Connect to the MetaMask to start the Course!
                   </div>
                 )}
@@ -92,7 +92,7 @@ export const HomePage: React.FC<IConnectProps> = ({
             {view == 1 && (
               <div className="flex justify-center pt-5">
                 {mmAddress == null && (
-                  <div className="text-2xl pt-32">
+                  <div className="pt-32 text-2xl">
                     Connect to the MetaMask to view Profile!
                   </div>
                 )}

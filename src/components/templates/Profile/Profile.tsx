@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { VCList } from '../../modules/VCList/VCList';
-import { SSISnapApi } from '@blockchain-lab-um/ssi-snap-types';
+import { MascaApi } from '@blockchain-lab-um/masca-types';
+import { isError } from '@blockchain-lab-um/utils';
 interface IConnectProps {
   mmAddress: string | null;
-  api: SSISnapApi;
+  api: MascaApi;
 }
 
 const snapId = process.env.SNAP_ID;
@@ -17,8 +18,11 @@ export const Profile: React.FC<IConnectProps> = ({ mmAddress, api }) => {
   const getVCs = async () => {
     try {
       const response = await api.queryVCs();
-      console.log(response);
-      setVCs(response);
+      if (isError(response)) {
+        console.log(response);
+        return;
+      }
+      setVCs(response.data);
     } catch (e) {
       console.log(e);
     }

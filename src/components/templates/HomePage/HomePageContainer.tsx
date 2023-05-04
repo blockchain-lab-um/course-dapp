@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 const axios = require('axios');
 import { HomePage } from './HomePage';
-import { SSISnapApi } from '@blockchain-lab-um/ssi-snap-types';
+import { MascaApi } from '@blockchain-lab-um/masca-types';
+import { isError } from '@blockchain-lab-um/utils';
 import { initiateSSISnap } from '../../../utils/snap';
 
 const snapId = process.env.SNAP_ID;
@@ -17,7 +18,7 @@ export const HomePageContainer: React.FC = () => {
   const [spinnerMsg, setSpinnerMsg] = useState<string>('loading...');
   const [view, setView] = useState<number>(0);
   const [courseStarted, setCourseStarted] = useState<boolean>(false);
-  const [api, setApi] = useState<SSISnapApi | undefined>(undefined);
+  const [api, setApi] = useState<MascaApi | undefined>(undefined);
 
   const switchView = (viewId: number) => {
     if (view != viewId) {
@@ -32,18 +33,21 @@ export const HomePageContainer: React.FC = () => {
       setSpinnerMsg('Connecting to Snap...');
       window.ethereum
         .request({ method: 'eth_requestAccounts' })
-        .then((result: React.SetStateAction<string | null>[]) => {
+        .then(async (result: React.SetStateAction<string | null>[]) => {
           console.log('Setting MM address!');
           mmAddr = result[0];
           setMmAddress(mmAddr);
+          const result2 = await initiateSSISnap(
+            mmAddr as string,
+            snapId as string
+          );
+          if (result2.isSnapInstalled) {
+            const api = await result2.snap?.getMascaApi();
+            setApi(api);
+            setSpinner(false);
+          }
+          setSpinner(false);
         });
-      const result = await initiateSSISnap(snapId as string);
-      if (result.isSnapInstalled) {
-        const api = await result.snap?.getSSISnapApi();
-        setApi(api as unknown as SSISnapApi);
-        setSpinner(false);
-      }
-      setSpinner(false);
     }
     return;
   };
@@ -78,10 +82,14 @@ export const HomePageContainer: React.FC = () => {
         console.log('API', api);
         console.log('Getting VCs...');
         const vcs = await api.queryVCs();
+        if (isError(vcs)) {
+          console.log('Error getting VCs', vcs.error);
+          return;
+        }
         console.log(vcs);
         try {
-          if (vcs.length > 0) {
-            vcs.map((vc: any) => {
+          if (vcs.data.length > 0) {
+            vcs.data.map((vc: any) => {
               vc = vc.data;
               console.log(
                 vc.credentialSubject.id.split(':')[3].toString().toUpperCase(),
@@ -204,9 +212,14 @@ export const HomePageContainer: React.FC = () => {
     if (api) {
       // TODO - get all VCs issued by correct issuer
       const vcs = await api.queryVCs();
+      if (isError(vcs)) {
+        console.log('Error getting VCs', vcs.error);
+        return;
+      }
+
       console.log('Returned VCs:', vcs);
-      if (vcs.length > 0) {
-        const vc_id = vcs[0].metadata.id;
+      if (vcs.data.length > 0) {
+        const vc_id = vcs.data[0].metadata.id;
         console.log('VC ID', vc_id);
         if (result && result.domain && result.challenge) {
           try {
@@ -220,10 +233,15 @@ export const HomePageContainer: React.FC = () => {
               },
             });
             console.log(res);
-
+            if (isError(res)) {
+              console.log('Error creating VP', res.error);
+              setSpinner(false);
+              return false;
+            }
+            console.log('vp: ', res.data);
             if (
               (await verifyVP(
-                res,
+                res.data,
                 'did:ethr:0x5:0x5Fd68bcc0Cf3844B4Ada2378b23A0bD46625CC6E',
                 result.challenge
               )) != false
@@ -260,7 +278,7 @@ export const HomePageContainer: React.FC = () => {
       startCourse={startCourse}
       courseStarted={courseStarted}
       openSecretRoom={openSecretRoom}
-      api={api as SSISnapApi}
+      api={api as MascaApi}
     />
   );
 };
