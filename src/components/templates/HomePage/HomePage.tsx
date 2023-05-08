@@ -1,15 +1,15 @@
-import React from 'react';
-import { CourseCompleted } from '../CourseCompleted/CourseCompleted';
-import Spinner from '../../elements/Spinner/Spinner';
-import { Header } from '../../modules/Header/Header';
-import { Error } from '../Error/Error';
-import { CourseForm } from '../../modules/Forms/CourseForm';
-import { Navbar } from '../../modules/Navbar/Navbar';
-import { StartCourseForm } from '../../modules/Forms/StartCourseForm';
-import { Profile } from '../Profile/Profile';
-import { Footer } from '../../modules/Footer/Footer';
-import { SecretRoom } from '../SecretRoom/SecretRoom';
-import { MascaApi } from '@blockchain-lab-um/masca-types';
+import React from "react";
+import { CourseCompleted } from "../CourseCompleted/CourseCompleted";
+import Spinner from "../../elements/Spinner/Spinner";
+import { Header } from "../../modules/Header/Header";
+import { Error } from "../Error/Error";
+import { CourseForm } from "../../modules/Forms/CourseForm";
+import { Navbar } from "../../modules/Navbar/Navbar";
+import { StartCourseForm } from "../../modules/Forms/StartCourseForm";
+import { Profile } from "../Profile/Profile";
+import { Footer } from "../../modules/Footer/Footer";
+import { SecretRoom } from "../SecretRoom/SecretRoom";
+import { MascaApi } from "@blockchain-lab-um/masca-types";
 
 interface IConnectProps {
   mmAddress: string | null;
@@ -45,7 +45,7 @@ export const HomePage: React.FC<IConnectProps> = ({
   api,
 }) => {
   if (!window.ethereum) {
-    return <Error msg={'MetaMask not installed!'} />;
+    return <Error msg={"MetaMask Flask not installed!"} />;
   } else {
     return (
       <div className="flex flex-col justify-between h-screen">
@@ -83,7 +83,7 @@ export const HomePage: React.FC<IConnectProps> = ({
                         <CourseForm completeCourse={completeCourse} />
                       )}
                     {snapInitialized && hasVC && !spinner && (
-                      <Error msg={'You already have a valid VC!'} />
+                      <Error msg={"You already have a valid VC!"} />
                     )}
                   </>
                 )}
