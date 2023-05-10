@@ -194,7 +194,9 @@ export const HomePageContainer: React.FC = () => {
 
     try {
       if (api) {
-        const res = await api.saveVC(VC);
+        const res = await api.saveVC(VC, {
+          store: ["snap"]
+        });
         console.log(res);
       }
     } catch (err) {
