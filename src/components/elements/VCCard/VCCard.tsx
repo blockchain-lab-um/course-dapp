@@ -27,11 +27,11 @@ export const VCCard: React.FC<IConnectProps> = ({ VC }) => {
       <b>Issuer:</b> <p>{VC.issuer.id}</p>
       <b>Subject:</b>
       <div className="p-2">
-        {credSubArr.map((att) => (
-          <>
+        {credSubArr.map((att, i) => (
+          <React.Fragment key={i}>
             <a>{att.toString()}</a>
             <br />
-          </>
+          </React.Fragment>
         ))}
       </div>
       <b>Issuance Date:</b> {VC.issuanceDate}

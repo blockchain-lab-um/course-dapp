@@ -4,6 +4,7 @@ import { HomePage } from './HomePage';
 import { MascaApi } from '@blockchain-lab-um/masca-types';
 import { isError } from '@blockchain-lab-um/utils';
 import { initiateSSISnap } from '../../../utils/snap';
+import type { W3CVerifiableCredential } from '@veramo/core';
 
 const snapId = process.env.SNAP_ID;
 const backend_url = process.env.BACKEND_URL;
@@ -15,6 +16,7 @@ export const HomePageContainer: React.FC = () => {
   const [courseCompleted, setCourseCompleted] = useState<boolean>(false);
   const [spinner, setSpinner] = useState<boolean>(false);
   const [hasVC, setHasVC] = useState<boolean>(false);
+  const [validVC, setValidVC] = useState<W3CVerifiableCredential | null>(null);
   const [spinnerMsg, setSpinnerMsg] = useState<string>('loading...');
   const [view, setView] = useState<number>(0);
   const [courseStarted, setCourseStarted] = useState<boolean>(false);
@@ -89,7 +91,7 @@ export const HomePageContainer: React.FC = () => {
         console.log(vcs);
         try {
           if (vcs.data.length > 0) {
-            vcs.data.map((vc: any) => {
+            for (let vc of vcs.data as any) {
               vc = vc.data;
               console.log(
                 vc.credentialSubject.id.split(':')[3].toString().toUpperCase(),
@@ -107,8 +109,10 @@ export const HomePageContainer: React.FC = () => {
               ) {
                 console.log('Valid VC found!');
                 setHasVC(true);
+                setValidVC(vc);
+                break;
               }
-            });
+            }
           }
         } catch (e) {
           console.log('No valid VCs found!', e);
@@ -195,8 +199,10 @@ export const HomePageContainer: React.FC = () => {
     try {
       if (api) {
         const res = await api.saveVC(VC, {
-          store: ["snap"]
+          store: ['snap'],
         });
+        setHasVC(true);
+        setValidVC(VC);
         console.log(res);
       }
     } catch (err) {
@@ -213,51 +219,46 @@ export const HomePageContainer: React.FC = () => {
     const result = await getChallenge();
     if (api) {
       // TODO - get all VCs issued by correct issuer
-      const vcs = await api.queryVCs();
-      if (isError(vcs)) {
-        console.log('Error getting VCs', vcs.error);
-        return;
-      }
+      // const vcs = await api.queryVCs();
+      // if (isError(vcs)) {
+      //   console.log('Error getting VCs', vcs.error);
+      //   return;
+      // }
+      if (!validVC) return false;
+      if (result && result.domain && result.challenge) {
+        try {
+          const res = await api.createVP({
+            vcs: [validVC],
+            proofFormat: 'jwt',
+            proofOptions: {
+              type: '',
+              domain: result.domain,
+              challenge: result.challenge,
+            },
+          });
 
-      console.log('Returned VCs:', vcs);
-      if (vcs.data.length > 0) {
-        const vc_id = vcs.data[0].metadata.id;
-        console.log('VC ID', vc_id);
-        if (result && result.domain && result.challenge) {
-          try {
-            const res = await api.createVP({
-              vcs: [{ id: vc_id }],
-              proofFormat: 'jwt',
-              proofOptions: {
-                type: '',
-                domain: result.domain,
-                challenge: result.challenge,
-              },
-            });
-            console.log(res);
-            if (isError(res)) {
-              console.log('Error creating VP', res.error);
-              setSpinner(false);
-              return false;
-            }
-            console.log('vp: ', res.data);
-            if (
-              (await verifyVP(
-                res.data,
-                'did:ethr:0x5:0x5Fd68bcc0Cf3844B4Ada2378b23A0bD46625CC6E',
-                result.challenge
-              )) != false
-            ) {
-              setView(2);
-              return true;
-            }
-          } catch (e) {
-            console.log(e);
+          if (isError(res)) {
+            console.log('Error creating VP', res.error);
             setSpinner(false);
+            return false;
           }
+
+          if (
+            (await verifyVP(
+              res.data,
+              'did:ethr:0x5:0x5Fd68bcc0Cf3844B4Ada2378b23A0bD46625CC6E',
+              result.challenge
+            )) != false
+          ) {
+            setView(2);
+            return true;
+          }
+        } catch (e) {
+          console.error(e);
           setSpinner(false);
-          return false;
         }
+        setSpinner(false);
+        return false;
       }
     }
     setSpinner(false);

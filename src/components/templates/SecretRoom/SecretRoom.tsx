@@ -11,7 +11,7 @@ export const SecretRoom: React.FC<IConnectProps> = ({}) => {
           <div className="grid justify-items-center bg-blue p-8">
             <div>
               <h3 className="text-3xl text-center text-white mb-10">
-                Congratulations! You`&apos;`ve discovered a secret room only
+                Congratulations! You&apos;ve discovered a secret room only
                 accessible with a valid VC!
               </h3>
               <br />

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { css } from '@emotion/react';
 import CircleLoader from 'react-spinners/CircleLoader';
 
-const override = css`
+const override = `
   display: block;
   margin: 0 auto;
   border-color: #05386b;
