@@ -45,7 +45,7 @@ export const HomePageContainer: React.FC = () => {
           );
           if (result2.isSnapInstalled) {
             const api = await result2.snap?.getMascaApi();
-            setApi(api);
+            setApi(api as MascaApi);
             setSpinner(false);
           }
           setSpinner(false);
