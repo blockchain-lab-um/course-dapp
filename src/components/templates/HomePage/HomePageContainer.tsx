@@ -229,7 +229,7 @@ export const HomePageContainer: React.FC = () => {
         try {
           const res = await api.createVP({
             vcs: [validVC],
-            proofFormat: 'jwt',
+            proofFormat: 'EthereumEip712Signature2021',
             proofOptions: {
               type: '',
               domain: result.domain,
