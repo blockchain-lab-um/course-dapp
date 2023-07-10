@@ -21,7 +21,6 @@ export async function initiateSSISnap(
 
     const enableResult = await enableMasca(address, {
       snapId,
-      version: '0.2.1',
     });
 
     if (isError(enableResult)) {
