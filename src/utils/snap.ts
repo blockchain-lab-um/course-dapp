@@ -19,7 +19,9 @@ export async function initiateSSISnap(
     console.log('Snap ID: ', snapId);
     console.log('Address: ', address);
 
-    const enableResult = await enableMasca(address, { snapId });
+    const enableResult = await enableMasca(address, {
+      snapId,
+    });
 
     if (isError(enableResult)) {
       console.log('Error');

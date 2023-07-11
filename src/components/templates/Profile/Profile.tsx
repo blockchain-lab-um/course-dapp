@@ -12,6 +12,7 @@ export const Profile: React.FC<IConnectProps> = ({ mmAddress, api }) => {
   const [VCs, setVCs] = useState<Array<any>>([]);
   useEffect(() => {
     console.log('Getting VCs...');
+    if (!api) return;
     getVCs();
   }, []);
 

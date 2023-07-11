@@ -11,9 +11,9 @@
     "deploy": "rm -rf node_modules/.cache && next build && next export && touch out/.nojekyll && git add -f out/ && git commit -m \"Deploy Next.js to gh-pages\" && git subtree push --prefix out origin gh-pages"
   },
   "dependencies": {
-    "@blockchain-lab-um/masca-connector": "0.1.0",
-    "@blockchain-lab-um/masca-types": "0.1.0",
-    "@blockchain-lab-um/utils": "1.1.0",
+    "@blockchain-lab-um/masca-connector": "0.3.1",
+    "@blockchain-lab-um/masca-types": "0.3.1",
+    "@blockchain-lab-um/utils": "1.2.0",
     "@veramo/core": "^4.2.0",
     "autoprefixer": "^10.4.7",
     "axios": "^0.26.1",
@@ -42,5 +42,9 @@
     "eslint-config-next": "12.2.2",
     "prettier": "^2.5.1",
     "typescript": "4.5.5"
+  },
+  "packageManager": "yarn@1.22.19",
+  "engines": {
+    "node": ">=18.16.0"
   }
 }
